@@ -17,7 +17,7 @@ public partial class MainViewModel : ViewModelBase
     public MainViewModel()
     {
         Point point = new Point(450, 300);
-        Rectangle borders = new Rectangle(0, 0, 900, 600);
+        borders = new Rectangle(360, 183, 447, 474);
         robot = new Robot(point, borders);
     }
 
