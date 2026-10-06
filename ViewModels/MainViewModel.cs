@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Drawing;
 using MyAvaloniaApp.Models;
 using static MyAvaloniaApp.Models.Parameters;
+using Avalonia.Data;
 
 namespace MyAvaloniaApp.ViewModels;
 
@@ -44,6 +45,42 @@ public partial class MainViewModel : ViewModelBase
         robot.Bewegen(Direction.right);
         OnPropertyChanged(nameof(RobotX));
         OnPropertyChanged(nameof(RobotY));
+    }
+    public void MoveUpLeft()
+    {
+        robot.Bewegen(Direction.left);
+        robot.Bewegen(Direction.up);
+        OnPropertyChanged(nameof(RobotX));
+        OnPropertyChanged(nameof(RobotY));
+    }
+    public void MoveUpRight()
+    {
+        robot.Bewegen(Direction.right);
+        robot.Bewegen(Direction.up);
+        OnPropertyChanged(nameof(RobotX));
+        OnPropertyChanged(nameof(RobotY));
+    }
+    public void MoveDownLeft()
+    {
+        robot.Bewegen(Direction.left);
+        robot.Bewegen(Direction.down);
+        OnPropertyChanged(nameof(RobotX));
+        OnPropertyChanged(nameof(RobotY));
+    }
+    public void MoveDownRight()
+    {
+        robot.Bewegen(Direction.right);
+        robot.Bewegen(Direction.down);
+        OnPropertyChanged(nameof(RobotX));
+        OnPropertyChanged(nameof(RobotY));
+    }
+    public void TurnLeft()
+    {
+        
+    }
+    public void TurnRight()
+    {
+        
     }
 
 }
