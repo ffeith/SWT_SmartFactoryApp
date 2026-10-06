@@ -14,11 +14,12 @@ public partial class MainViewModel : ViewModelBase
     Rectangle borders;
     public double RobotX => robot.Location.X;
     public double RobotY => robot.Location.Y;
+    public double Rotation => robot.Rotation;
 
     public MainViewModel()
     {
         Point point = new Point(450, 300);
-        borders = new Rectangle(360, 183, 447, 474);
+        borders = new Rectangle(360, 195, 447, 450);
         robot = new Robot(point, borders);
     }
 
@@ -76,11 +77,13 @@ public partial class MainViewModel : ViewModelBase
     }
     public void TurnLeft()
     {
-        
+        robot.Bewegen(Direction.turnLeft);
+        OnPropertyChanged(nameof(Rotation));
     }
     public void TurnRight()
     {
-        
+        robot.Bewegen(Direction.turnRight);
+        OnPropertyChanged(nameof(Rotation));
     }
 
 }
