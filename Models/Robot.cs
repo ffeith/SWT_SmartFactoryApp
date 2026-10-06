@@ -6,6 +6,7 @@ internal class Robot
 {
     private Point location;
     private Rectangle borders;
+    private double rotation;
 
     public Point Location                               //lange Syntax
     {
@@ -16,6 +17,11 @@ internal class Robot
     public Rectangle Borders                            //kurze Syntax
     {
         get => borders; set => borders = value;
+    }
+
+    public double Rotation
+    {
+        get {return rotation;}
     }
 
     public Robot(Point location, Rectangle borders)
@@ -50,6 +56,14 @@ internal class Robot
             case Parameters.Direction.right:
                 if (location.X + Parameters.step <= borders.Right)
                     location.X += Parameters.step;
+                break;
+            case Parameters.Direction.turnLeft:
+                rotation -= Parameters.turnAngle;
+                if(rotation == -360) rotation = 0;
+                break;
+            case Parameters.Direction.turnRight:
+                rotation += Parameters.turnAngle;
+                if(rotation == 360) rotation = 0;
                 break;
             default:
                 break;
