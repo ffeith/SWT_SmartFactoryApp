@@ -28,4 +28,28 @@ public partial class MainWindow : Window
     {
         ViewModel?.MoveRight();
     }
+    private void MoveUpLeft_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.MoveUpLeft();
+    }
+    private void MoveUpRight_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.MoveUpRight();
+    }
+    private void MoveDownLeft_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.MoveDownLeft();
+    }
+    private void MoveDownRight_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.MoveDownRight();
+    }
+    private void TurnLeft_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.TurnLeft();
+    }
+    private void TurnRight_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.TurnRight();
+    }
 }
