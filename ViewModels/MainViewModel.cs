@@ -23,6 +23,10 @@ public partial class MainViewModel : ViewModelBase
     public MainViewModel()
     {
         factory = new Factory();
+        foreach (var brick in factory.Bricks)
+        {
+            BricksView.Add(new LegoBricksViewModel(brick));
+        }
         timer = new DispatcherTimer();
         timer.Interval = TimeSpan.FromMilliseconds(timerInterval);
         timer.Tick += Timer_Tick;
@@ -30,7 +34,8 @@ public partial class MainViewModel : ViewModelBase
     }
     private void Timer_Tick(object? sender, EventArgs e)
     {
-        NotifyRobotPoseChanged();
+        //NotifyRobotPoseChanged();
+        factory.LegoBrickBewegen();
         NotifyLegoBricksPoseChange();
     }
 

@@ -46,6 +46,7 @@ namespace MyAvaloniaApp.Models
         {
             Location = pose.Location;
             angle = pose.Angle;
+            Borders = ViewParameters.Borders;
         }
 
         public virtual void Bewegen(Parameters.Direction direction)

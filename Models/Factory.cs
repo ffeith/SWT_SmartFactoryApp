@@ -26,7 +26,7 @@ public class Factory
     }
     private void CreateBricks()
     {
-        Pose pose1 = new Pose(BrickPose.X + 10, BrickPose.Y, BrickPose.Angle);
+        Pose pose1 = new Pose(BrickPose.X + 0, BrickPose.Y, BrickPose.Angle);
         Pose pose2 = new Pose(BrickPose.X + 50, BrickPose.Y, BrickPose.Angle);
         Pose pose3 = new Pose(BrickPose.X + 100, BrickPose.Y, BrickPose.Angle);
         Pose pose4 = new Pose(BrickPose.X + 150, BrickPose.Y, BrickPose.Angle);
@@ -41,11 +41,11 @@ public class Factory
     }
     int tickCount = 0;
 
-public void LegoBrickBewegen(LegoBrick brick, Direction direction)
+public void LegoBrickBewegen()
     {
         bool outward = tickCount < 10;
         tickCount = (tickCount + 1) % 20;
-        foreach (LegoBrick b in Bricks)
+        foreach (LegoBrick brick in Bricks)
         {
             if (outward)
                 brick.Bewegen(Parameters.Direction.right);
