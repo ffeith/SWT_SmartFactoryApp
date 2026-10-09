@@ -37,6 +37,26 @@
             <Button x:Name="TurnLeft" Content="Turn Left" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Width="96" Click="TurnLeft_Click" />
             <Button x:Name="TurnRight" Content="Turn Right" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Width="96" Click="TurnRight_Click" />
         </Grid>
+        <Rectangle x:Name="brickRed" Width="12" Height="12" Fill="Red" Stroke="Black" Canvas.Left="{Binding BricksView[0].X}" Canvas.Top="{Binding BricksView[0].Y}" >
+            <Rectangle.RenderTransform>
+                <RotateTransform Angle="{Binding BricksView[0].Angle}" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle x:Name="brickGreen" Width="12" Height="12" Fill="Green" Stroke="Black" Canvas.Left="{Binding BricksView[1].X}" Canvas.Top="{Binding BricksView[1].Y}" >
+            <Rectangle.RenderTransform>
+                <RotateTransform Angle="{Binding BricksView[1].Angle}" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle x:Name="brickYellow" Width="12" Height="12" Fill="Yellow" Stroke="Black" Canvas.Left="{Binding BricksView[2].X}" Canvas.Top="{Binding BricksView[2].Y}" >
+            <Rectangle.RenderTransform>
+                <RotateTransform Angle="{Binding BricksView[2].Angle}" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        <Rectangle x:Name="brickBlue" Width="12" Height="12" Fill="Blue" Stroke="Black" Canvas.Left="{Binding BricksView[3].X}" Canvas.Top="{Binding BricksView[3].Y}" >
+            <Rectangle.RenderTransform>
+                <RotateTransform Angle="{Binding BricksView[3].Angle}" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
         <Rectangle x:Name="robotRectangle" Width="70" Height="50" Stroke="Black" Canvas.Left="{Binding RobotX}" Canvas.Top="{Binding RobotY}" >
             <Rectangle.Fill>
                 <ImageBrush Source="avares://MyAvaloniaApp/Assets/robot_platform.png" />
