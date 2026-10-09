@@ -1,6 +1,6 @@
 namespace MyAvaloniaApp.Models;
 
-internal class Parameters
+public class Parameters
 {
     public enum Direction
     {
@@ -12,6 +12,21 @@ internal class Parameters
         turnLeft = 5,
         turnRight = 6,
     }
+    public enum LegoColor
+    {
+        red = 0,
+        green = 1,
+        blue = 2,
+        yellow = 3,
+    }
+
+    public enum LegoSize
+    {
+        small = 0,
+        large = 1,
+    }
     public const int step = 3;
-    public const int turnAngle = 90;
+    public const int turnAngle = 15;
+    public const int bricksPerLine = 4;
+    public const int timerInterval = 50;        //Timer Interval in ms
 }

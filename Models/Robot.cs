@@ -2,29 +2,9 @@ using System.Drawing;
 
 namespace MyAvaloniaApp.Models;
 
-internal class Robot
+public class Robot : Beweger
 {
-    private Point location;
-    private Rectangle borders;
-    private double rotation;
-
-    public Point Location                               //lange Syntax
-    {
-        get {return location;}
-        set {location = value;}
-    }
-
-    public Rectangle Borders                            //kurze Syntax
-    {
-        get => borders; set => borders = value;
-    }
-
-    public double Rotation
-    {
-        get {return rotation;}
-    }
-
-    public Robot(Point location, Rectangle borders)
+    public Robot(Point location, Rectangle borders) : base(location, borders)
     {
         //this.location = location;
         //this.borders = borders;
@@ -32,41 +12,13 @@ internal class Robot
         Borders = borders;
     }
 
-    public Robot(Point location)
+    public Robot(Point location) : base(location)
     {
         Location = location;
     }
 
-    public void Bewegen(Parameters.Direction direction)
+    public override void Bewegen(Parameters.Direction direction)
     {
-        switch (direction)
-        {
-            case Parameters.Direction.up:
-                if (location.Y - Parameters.step >= borders.Top)
-                    location.Y -= Parameters.step;
-                break;
-            case Parameters.Direction.down:
-                if (location.Y + Parameters.step <= borders.Bottom)
-                    location.Y += Parameters.step;
-                break;
-            case Parameters.Direction.left:
-                if (location.X - Parameters.step >= borders.Left)
-                    location.X -= Parameters.step;
-                break;
-            case Parameters.Direction.right:
-                if (location.X + Parameters.step <= borders.Right)
-                    location.X += Parameters.step;
-                break;
-            case Parameters.Direction.turnLeft:
-                rotation -= Parameters.turnAngle;
-                if(rotation == -360) rotation = 0;
-                break;
-            case Parameters.Direction.turnRight:
-                rotation += Parameters.turnAngle;
-                if(rotation == 360) rotation = 0;
-                break;
-            default:
-                break;
-        }
+        base.Bewegen(direction);
     }
 }
