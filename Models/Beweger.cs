@@ -77,6 +77,9 @@ namespace MyAvaloniaApp.Models
                     rotation += Parameters.turnAngle;
                     if(rotation == 360) rotation = 0;
                     break;
+                case Parameters.Direction.zeroDegrees:
+                    rotation = 0;
+                    break;
                 default:
                     break;
             }
