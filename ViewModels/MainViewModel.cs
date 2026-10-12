@@ -8,6 +8,7 @@ using Avalonia.Data;
 using System.Collections.Generic;
 using Avalonia.Threading;
 using System;
+using System.Threading;
 
 namespace MyAvaloniaApp.ViewModels;
 
@@ -92,6 +93,19 @@ public partial class MainViewModel : ViewModelBase
     {
         factory.RobotBewegen(Direction.turnRight);
         NotifyRobotPoseChanged();
+    }
+    public void TurnToZeroDegrees()
+    {
+        factory.RobotBewegen(Direction.zeroDegrees);
+        NotifyRobotPoseChanged();
+    }
+    public void TimerStart()
+    {
+        timer.Start();
+    }
+    public void TimerStop()
+    {
+        timer.Stop();
     }
     private void NotifyRobotPoseChanged()
     {

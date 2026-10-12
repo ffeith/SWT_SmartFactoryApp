@@ -11,6 +11,7 @@ public class Parameters
         right = 4,
         turnLeft = 5,
         turnRight = 6,
+        zeroDegrees = 7,
     }
     public enum LegoColor
     {

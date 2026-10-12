@@ -34,8 +34,14 @@
             <Button x:Name="DownRightButton" Content="DownR" HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="65" FontSize="14" Click="MoveDownRight_Click" />
         </Grid>
         <Grid Height="30" Width="200" Canvas.Left="970" Canvas.Top="600">
-            <Button x:Name="TurnLeft" Content="Turn Left" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Width="96" Click="TurnLeft_Click" />
-            <Button x:Name="TurnRight" Content="Turn Right" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Width="96" Click="TurnRight_Click" />
+            <Button x:Name="TurnLeft" Content="Turn L" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Width="65" Click="TurnLeft_Click" />
+            <Button x:Name="TurnRight" Content="Turn R" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Width="65" Click="TurnRight_Click" />
+            <Button x:Name="TurnToZeroDegrees" Content="0°" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Width="65" Click="TurnToZeroDegrees_Click" />
+        </Grid>
+        <Grid Height="30" Width="200" Canvas.Left="970" Canvas.Top="450">
+            <Button x:Name="TimerStart" Content="Start" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Width="96" Click="TimerStart_Click" />
+            <Button x:Name="TimerStop" Content="Stop" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Width="96" Click="TimerStop_Click" />
+
         </Grid>
         <Rectangle x:Name="brickRed" Width="12" Height="12" Fill="Red" Stroke="Black" Canvas.Left="{Binding BricksView[0].X}" Canvas.Top="{Binding BricksView[0].Y}" >
             <Rectangle.RenderTransform>
