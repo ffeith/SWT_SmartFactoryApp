@@ -40,8 +40,8 @@ namespace MyAvaloniaApp.Models
         public Beweger(Pose pose, Rectangle borders)
         {
             Location = pose.Location;
-            angle = pose.Angle;
-            Borders = ViewParameters.Borders;
+            Angle = pose.Angle;
+            Borders = borders;
         }
 
         public virtual void Bewegen(Parameters.Direction direction)
@@ -78,6 +78,12 @@ namespace MyAvaloniaApp.Models
                 default:
                     break;
             }
+        }
+        public virtual void Bewegen(double deltaX, double deltaY)
+        {           
+            int newX = Location.X + (int)Math.Round(deltaX);
+            int newY = Location.Y + (int)Math.Round(deltaY);
+            Location = new Point(newX, newY);
         }
     }
 }

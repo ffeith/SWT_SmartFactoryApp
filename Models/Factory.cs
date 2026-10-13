@@ -8,6 +8,7 @@ using Avalonia.Data;
 using static MyAvaloniaApp.Models.ViewParameters;
 using System.Collections.Generic;
 using Avalonia.Controls;
+using System;
 
 namespace MyAvaloniaApp.ViewModels;
 
@@ -45,35 +46,34 @@ public class Factory
     {
         robot.Bewegen(direction);
     }
-    int tickCount = 0;
-    public void LegoBricksBewegen()
+    private int tickCount = 0;
+    public void MoveBricks()
     {
-        bool outward = tickCount < 10;
+        bool forward = tickCount < 10;
+
         tickCount = (tickCount + 1) % 20;
 
-        ProductionLine[] productionLines =
-        {
-            productionLineRed,
-            productionLineYellow,
-            productionLineBlue,
-            productionLineGreen
-        };
+        MoveBricksAlongLine(productionLineRed, forward);
+        MoveBricksAlongLine(productionLineYellow, forward);
+        MoveBricksAlongLine(productionLineBlue, forward);
+        MoveBricksAlongLine(productionLineGreen, forward);
+    }
 
-        foreach (ProductionLine line in productionLines)
+    private void MoveBricksAlongLine(ProductionLine line, bool forward)
+    {
+        double angleRad = line.ProductionLinePose.Angle * Math.PI / 180.0;
+        double deltaX = Math.Cos(angleRad) * Parameters.step;
+        double deltaY = Math.Sin(angleRad) * Parameters.step;
+
+        if (!forward)
         {
-            foreach (LegoBrick brick in line.Bricks)
-            {
-                if (outward)
-                {
-                    brick.Bewegen(Parameters.Direction.right);
-                    brick.Bewegen(Parameters.Direction.up);
-                }
-                else
-                {
-                    brick.Bewegen(Parameters.Direction.left);
-                    brick.Bewegen(Parameters.Direction.down);
-                }
-            }
+            deltaX = -deltaX;
+            deltaY = -deltaY;
+        }
+
+        foreach (LegoBrick brick in line.Bricks)
+        {
+            brick.Bewegen(deltaX, deltaY);
         }
     }
 }
