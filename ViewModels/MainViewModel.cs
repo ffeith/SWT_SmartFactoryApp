@@ -26,30 +26,30 @@ public partial class MainViewModel : ViewModelBase
     public List<LegoBricksViewModel> BricksView { get; } = new List<LegoBricksViewModel>();
 
     public MainViewModel()
-{
-    factory = new Factory();
+    {
+        factory = new Factory();
 
-    foreach (var brick in factory.ProductionLineRed.Bricks)
-        BricksView.Add(new LegoBricksViewModel(brick));
+        foreach (var brick in factory.ProductionLineRed.Bricks)
+            BricksView.Add(new LegoBricksViewModel(brick));
 
-    foreach (var brick in factory.ProductionLineYellow.Bricks)
-        BricksView.Add(new LegoBricksViewModel(brick));
+        foreach (var brick in factory.ProductionLineYellow.Bricks)
+            BricksView.Add(new LegoBricksViewModel(brick));
 
-    foreach (var brick in factory.ProductionLineBlue.Bricks)
-        BricksView.Add(new LegoBricksViewModel(brick));
+        foreach (var brick in factory.ProductionLineBlue.Bricks)
+            BricksView.Add(new LegoBricksViewModel(brick));
 
-    foreach (var brick in factory.ProductionLineGreen.Bricks)
-        BricksView.Add(new LegoBricksViewModel(brick));
+        foreach (var brick in factory.ProductionLineGreen.Bricks)
+            BricksView.Add(new LegoBricksViewModel(brick));
 
-    timer = new DispatcherTimer();
-    timer.Interval = TimeSpan.FromMilliseconds(timerInterval);
-    timer.Tick += Timer_Tick;
-}
-    private void Timer_Tick(object? sender, EventArgs e)
-{
-    factory.LegoBricksBewegen();
-    NotifyLegoBricksPoseChange();
-}
+        timer = new DispatcherTimer();
+        timer.Interval = TimeSpan.FromMilliseconds(timerInterval);
+        timer.Tick += Timer_Tick;
+    }
+        private void Timer_Tick(object? sender, EventArgs e)
+    {
+        factory.MoveBricks();
+        NotifyLegoBricksPoseChange();
+    }
 
     public void MoveUp()
     {

@@ -15,7 +15,7 @@ public class LegoBrick : Beweger
     public Pose LegoPose { get; }
 
 
-    public LegoBrick(Pose pose, LegoColor color, LegoSize size) : base(pose.Location, ViewParameters.Borders)
+    public LegoBrick(Pose pose, LegoColor color, LegoSize size) : base(pose, ViewParameters.Borders)
     {
         Color = color;
         Size = size;
