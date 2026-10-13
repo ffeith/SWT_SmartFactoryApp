@@ -19,26 +19,37 @@ public partial class MainViewModel : ViewModelBase
     public double RobotX => factory.RobotX;
     public double RobotY => factory.RobotY;
     public double Rotation => factory.Rotation;
+    public ProductionLine ProductionLineRed => factory.ProductionLineRed;
+    public ProductionLine ProductionLineYellow => factory.ProductionLineYellow;
+    public ProductionLine ProductionLineBlue => factory.ProductionLineBlue;
+    public ProductionLine ProductionLineGreen => factory.ProductionLineGreen;
     public List<LegoBricksViewModel> BricksView { get; } = new List<LegoBricksViewModel>();
 
     public MainViewModel()
-    {
-        factory = new Factory();
-        foreach (var brick in factory.Bricks)
-        {
-            BricksView.Add(new LegoBricksViewModel(brick));
-        }
-        timer = new DispatcherTimer();
-        timer.Interval = TimeSpan.FromMilliseconds(timerInterval);
-        timer.Tick += Timer_Tick;
-        timer.Start();
-    }
+{
+    factory = new Factory();
+
+    foreach (var brick in factory.ProductionLineRed.Bricks)
+        BricksView.Add(new LegoBricksViewModel(brick));
+
+    foreach (var brick in factory.ProductionLineYellow.Bricks)
+        BricksView.Add(new LegoBricksViewModel(brick));
+
+    foreach (var brick in factory.ProductionLineBlue.Bricks)
+        BricksView.Add(new LegoBricksViewModel(brick));
+
+    foreach (var brick in factory.ProductionLineGreen.Bricks)
+        BricksView.Add(new LegoBricksViewModel(brick));
+
+    timer = new DispatcherTimer();
+    timer.Interval = TimeSpan.FromMilliseconds(timerInterval);
+    timer.Tick += Timer_Tick;
+}
     private void Timer_Tick(object? sender, EventArgs e)
-    {
-        //NotifyRobotPoseChanged();
-        factory.LegoBrickBewegen();
-        NotifyLegoBricksPoseChange();
-    }
+{
+    factory.LegoBricksBewegen();
+    NotifyLegoBricksPoseChange();
+}
 
     public void MoveUp()
     {

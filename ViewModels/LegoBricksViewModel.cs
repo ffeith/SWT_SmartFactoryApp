@@ -9,6 +9,7 @@ public partial class LegoBricksViewModel : ViewModelBase
     [ObservableProperty] private double x;
     [ObservableProperty] private double y;
     [ObservableProperty] private double angle;
+    public Parameters.LegoColor Color => brick.Color;
     
     public LegoBricksViewModel(LegoBrick brick)
     {
