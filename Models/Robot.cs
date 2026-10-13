@@ -11,12 +11,6 @@ public class Robot : Beweger
         Location = location;                            //Properties -> Location ist Methode, die location als value verwendet (Alternative zu this->): Macht den Code flexibler
         Borders = borders;
     }
-
-    public Robot(Point location) : base(location)
-    {
-        Location = location;
-    }
-
     public override void Bewegen(Parameters.Direction direction)
     {
         base.Bewegen(direction);

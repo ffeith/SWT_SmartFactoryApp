@@ -37,11 +37,6 @@ namespace MyAvaloniaApp.Models
             Location = location;                            //Properties -> Location ist Methode, die location als value verwendet (Alternative zu this->): Macht den Code flexibler
             Borders = borders;
         }
-
-        public Beweger(Point location)
-        {
-            Location = location;
-        }
         public Beweger(Pose pose, Rectangle borders)
         {
             Location = pose.Location;

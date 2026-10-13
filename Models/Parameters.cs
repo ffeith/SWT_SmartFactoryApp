@@ -20,7 +20,6 @@ public class Parameters
         blue = 2,
         yellow = 3,
     }
-
     public enum LegoSize
     {
         small = 0,
