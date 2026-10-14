@@ -46,43 +46,60 @@ namespace MyAvaloniaApp.Models
 
         public virtual void Bewegen(Parameters.Direction direction)
         {
+            double angleRad = rotation * Math.PI / 180.0;
+
+            double deltaX = 0;
+            double deltaY = 0;
+
             switch (direction)
             {
                 case Parameters.Direction.up:
-                    if (location.Y - Parameters.step >= borders.Top)
-                        location.Y -= Parameters.step;
+                    deltaX = Math.Sin(angleRad) * Parameters.step;
+                    deltaY = -Math.Cos(angleRad) * Parameters.step;
                     break;
                 case Parameters.Direction.down:
-                    if (location.Y + Parameters.step <= borders.Bottom)
-                        location.Y += Parameters.step;
+                    deltaX = -Math.Sin(angleRad) * Parameters.step;
+                    deltaY = Math.Cos(angleRad) * Parameters.step;
                     break;
                 case Parameters.Direction.left:
-                    if (location.X - Parameters.step >= borders.Left)
-                        location.X -= Parameters.step;
+                    deltaX = -Math.Cos(angleRad) * Parameters.step;
+                    deltaY = -Math.Sin(angleRad) * Parameters.step;
                     break;
                 case Parameters.Direction.right:
-                    if (location.X + Parameters.step <= borders.Right)
-                        location.X += Parameters.step;
+                    deltaX = Math.Cos(angleRad) * Parameters.step;
+                    deltaY = Math.Sin(angleRad) * Parameters.step;
                     break;
                 case Parameters.Direction.turnLeft:
                     rotation -= Parameters.turnAngle;
-                    if(rotation == -360) rotation = 0;
-                    break;
+                    if (rotation <= -360)
+                        rotation += 360;
+                    return;
                 case Parameters.Direction.turnRight:
                     rotation += Parameters.turnAngle;
-                    if(rotation == 360) rotation = 0;
-                    break;
+                    if (rotation >= 360)
+                        rotation -= 360;
+                    return;
                 case Parameters.Direction.zeroDegrees:
                     rotation = 0;
-                    break;
+                    return;
+                case Parameters.Direction.stop:
                 default:
-                    break;
+                    return;
+            }
+
+            int newX = location.X + (int)Math.Round(deltaX);
+            int newY = location.Y + (int)Math.Round(deltaY);
+
+            if (newX >= borders.Left && newX <= borders.Right && newY >= borders.Top && newY <= borders.Bottom)
+            {
+                Location = new Point(newX, newY);
             }
         }
         public virtual void Bewegen(double deltaX, double deltaY)
-        {           
+        {
             int newX = Location.X + (int)Math.Round(deltaX);
             int newY = Location.Y + (int)Math.Round(deltaY);
+
             Location = new Point(newX, newY);
         }
     }
