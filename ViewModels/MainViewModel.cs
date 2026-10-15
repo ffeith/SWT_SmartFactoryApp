@@ -45,7 +45,7 @@ public partial class MainViewModel : ViewModelBase
         timer.Interval = TimeSpan.FromMilliseconds(timerInterval);
         timer.Tick += Timer_Tick;
     }
-        private void Timer_Tick(object? sender, EventArgs e)
+    private void Timer_Tick(object? sender, EventArgs e)
     {
         factory.MoveBricks();
         NotifyLegoBricksPoseChange();
