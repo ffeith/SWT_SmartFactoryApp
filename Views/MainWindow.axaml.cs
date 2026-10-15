@@ -52,4 +52,16 @@ public partial class MainWindow : Window
     {
         ViewModel?.TurnRight();
     }
+    private void TurnToZeroDegrees_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.TurnToZeroDegrees();
+    }
+    private void TimerStart_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.TimerStart();
+    }
+    private void TimerStop_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.TimerStop();
+    }
 }
