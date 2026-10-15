@@ -16,7 +16,6 @@ public class ProductionLine
     public ProductionLine(Pose pose)
     {
         ProductionLinePose = pose;
-        // Dieser Konstruktor erzeugt keine Steine.
     }
 
     public ProductionLine(Pose pose, Parameters.LegoColor color)
@@ -61,8 +60,7 @@ public class ProductionLine
 
         for (int i = 0; i < Parameters.bricksPerLine; i++)
         {
-            double distance =
-                (i - (Parameters.bricksPerLine - 1) / 2.0) * brickSpacing;
+            double distance = (i - (Parameters.bricksPerLine - 1) / 2.0) * brickSpacing;
 
             double brickCenterX = rowCenterX + distance * dx;
             double brickCenterY = rowCenterY + distance * dy;
