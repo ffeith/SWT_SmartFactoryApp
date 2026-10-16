@@ -23,4 +23,13 @@ public static class ViewParameters
     public static Pose ProductionLinePoseBlue = new Pose(767, 235, 45);
     public static Pose ProductionLinePoseGreen = new Pose(767, 625, -45);
     public static Rectangle Borders = new Rectangle(360, 183, 447, 474);
+    public static int RobotWidth = 50;
+    public static int RobotHeight = 30;
+    public static int ButtonWidth = 65;
+    public static int ButtonHeight = 30;
+    public static int FontSize = 14;
+    public static int productionLineWidth = 200;
+    public static int productionLineHeight = 30;
+    public static int brickWidth = 20;
+    public static int brickHeight = 20;
 }
