@@ -32,6 +32,7 @@
             <Button x:Name="UpRightButton" Content="UpR" HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Top" Width="65" FontSize="14" Click="MoveUpRight_Click" />
             <Button x:Name="DownLeftButton" Content="DownL" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="65" FontSize="14" Click="MoveDownLeft_Click" />
             <Button x:Name="DownRightButton" Content="DownR" HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="65" FontSize="14" Click="MoveDownRight_Click" />
+            <Button x:Name="StopButton" Content="Stop" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Width="65" FontSize="14" Click="StopButton_Click" />
         </Grid>
         <Grid Height="30" Width="200" Canvas.Left="970" Canvas.Top="600">
             <Button x:Name="TurnLeft" Content="Turn L" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Width="65" Click="TurnLeft_Click" />

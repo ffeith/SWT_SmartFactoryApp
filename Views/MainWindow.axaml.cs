@@ -44,6 +44,10 @@ public partial class MainWindow : Window
     {
         ViewModel?.MoveDownRight();
     }
+    private void StopButton_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.StopButton();
+    }
     private void TurnLeft_Click(object sender, RoutedEventArgs e)
     {
         ViewModel?.TurnLeft();

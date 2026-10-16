@@ -13,6 +13,7 @@ public class LegoBrick : Beweger
     public LegoColor Color { get {return color; } set {color = value;} }
     public LegoSize Size { get {return size; } set {size = value;} }
     public Pose LegoPose { get; }
+    public bool Gedockt { get; set; } = false;
 
 
     public LegoBrick(Pose pose, LegoColor color, LegoSize size) : base(pose, ViewParameters.Borders)
@@ -20,5 +21,11 @@ public class LegoBrick : Beweger
         Color = color;
         Size = size;
         LegoPose = pose;
+    }
+
+    public override void Bewegen(Direction direction)
+    {
+        if (Gedockt) return;
+        base.Bewegen(direction);
     }
 }

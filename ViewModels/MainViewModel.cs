@@ -95,6 +95,11 @@ public partial class MainViewModel : ViewModelBase
         factory.RobotBewegen(Direction.down);
         NotifyRobotPoseChanged();
     }
+    public void StopButton()
+    {
+        factory.RobotBewegen(Direction.stop);
+        NotifyRobotPoseChanged();
+    }
     public void TurnLeft()
     {
         factory.RobotBewegen(Direction.turnLeft);
