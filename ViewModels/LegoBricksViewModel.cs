@@ -10,6 +10,15 @@ public partial class LegoBricksViewModel : ViewModelBase
     [ObservableProperty] private double y;
     [ObservableProperty] private double angle;
     public Parameters.LegoColor Color => brick.Color;
+    public double Width =>
+    brick.Size == Parameters.LegoSize.large
+        ? ViewParameters.BigBrickWidth
+        : ViewParameters.SmallBrickWidth;
+
+    public double Height =>
+        brick.Size == Parameters.LegoSize.large
+            ? ViewParameters.BigBrickHeight
+            : ViewParameters.SmallBrickHeight;
     
     public LegoBricksViewModel(LegoBrick brick)
     {

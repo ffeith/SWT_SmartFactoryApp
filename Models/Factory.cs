@@ -51,7 +51,17 @@ public class Factory
 
     public Factory()
     {
-        robot = new Robot(RobotPose.Location, Borders);
+        List<ProductionLine> productionLines = new List<ProductionLine>
+        {
+            productionLineRed,
+            productionLineYellow,
+            productionLineBlue,
+            productionLineGreen,
+            productionLineRecycle,
+            productionLineDelivery
+        };
+
+        robot = new Robot(RobotPose.Location, Borders, productionLines);
     }
     public void RobotBewegen(Direction direction)
     {

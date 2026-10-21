@@ -65,9 +65,8 @@ public class ProductionLine
             double brickCenterX = rowCenterX + distance * dx;
             double brickCenterY = rowCenterY + distance * dy;
 
-            LegoSize brickSize = i < 2                                              //Erste zwei Steine gross, letzte zwei klein
-                ? LegoSize.large
-                : LegoSize.small;
+            // LegoSize brickSize = i < 2 ? LegoSize.large : LegoSize.small;                        //2 große und 2 kleine
+            LegoSize brickSize = LegoSize.small;                                                    //alle klein
 
             double displayWidth = brickSize == LegoSize.large ? 20 : 12;
             const double displayHeight = 12;

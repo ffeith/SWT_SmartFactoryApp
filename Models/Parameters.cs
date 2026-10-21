@@ -26,7 +26,8 @@ public class Parameters
         large = 1,
     }
     public const int step = 3;
-    public const int turnAngle = 15;
+    public const int turnAngle = 3;
     public const int bricksPerLine = 4;
     public const int timerInterval = 50;        //Timer Interval in ms
+    public const int robotTimerInterval = 150;
 }

@@ -53,52 +53,70 @@ public class Beweger
         double deltaX = 0;
         double deltaY = 0;
 
+        // Zunächst nur die geplante Rotation berechnen.
+        double candidateRotation = rotation;
+
         switch (direction)
         {
             case Parameters.Direction.up:
                 deltaX = Math.Sin(angleRad) * Parameters.step;
                 deltaY = -Math.Cos(angleRad) * Parameters.step;
                 break;
+
             case Parameters.Direction.down:
                 deltaX = -Math.Sin(angleRad) * Parameters.step;
                 deltaY = Math.Cos(angleRad) * Parameters.step;
                 break;
+
             case Parameters.Direction.left:
                 deltaX = -Math.Cos(angleRad) * Parameters.step;
                 deltaY = -Math.Sin(angleRad) * Parameters.step;
                 break;
+
             case Parameters.Direction.right:
                 deltaX = Math.Cos(angleRad) * Parameters.step;
                 deltaY = Math.Sin(angleRad) * Parameters.step;
                 break;
+
             case Parameters.Direction.turnLeft:
-                rotation -= Parameters.turnAngle;
-                if (rotation <= -360)
-                    rotation += 360;
-                UpdateDockedObject();
-                return;
+                candidateRotation -= Parameters.turnAngle;
+
+                if (candidateRotation <= -360)
+                    candidateRotation += 360;
+
+                break;
+
             case Parameters.Direction.turnRight:
-                rotation += Parameters.turnAngle;
-                if (rotation >= 360)
-                    rotation -= 360;
-                UpdateDockedObject();
-                return;
+                candidateRotation += Parameters.turnAngle;
+
+                if (candidateRotation >= 360)
+                    candidateRotation -= 360;
+
+                break;
+
             case Parameters.Direction.zeroDegrees:
-                rotation = 0;
-                UpdateDockedObject();
-                return;
+                candidateRotation = 0;
+                break;
+
             case Parameters.Direction.stop:
-                break;
+                return;
+
             default:
-                break;
+                return;
         }
 
+        // Vorgeschlagene Position berechnen.
         Point newLoc = new Point(
-        location.X + (int)Math.Round(deltaX),
-        location.Y + (int)Math.Round(deltaY));
-        if (!InnerhalbGrenzen(newLoc))
+            location.X + (int)Math.Round(deltaX),
+            location.Y + (int)Math.Round(deltaY));
+
+        // Position UND Rotation überprüfen.
+        if (!PositionErlaubt(newLoc, candidateRotation))
             return;
+
+        // Erst jetzt die Bewegung übernehmen.
         Location = newLoc;
+        rotation = candidateRotation;
 
         UpdateDockedObject();
     }
@@ -164,16 +182,64 @@ public class Beweger
         return true;
     }
 
-    private bool InnerhalbGrenzen(Point position)
+    protected virtual bool PositionErlaubt(
+    Point position,
+    double candidateRotation)
     {
         if (this is Robot)
         {
-            return position.X >= borders.Left
-                && position.Y >= borders.Top
-                && position.X + RobotWidth <= borders.Right
-                && position.Y + RobotHeight <= borders.Bottom;
+            Rectangle robotBounds = RotatedBounds(
+                position,
+                candidateRotation,
+                RobotWidth,
+                RobotHeight);
+
+            return robotBounds.Left >= Borders.Left
+                && robotBounds.Top >= Borders.Top
+                && robotBounds.Right <= Borders.Right
+                && robotBounds.Bottom <= Borders.Bottom;
         }
 
-        return borders.Contains(position);
+        return Borders.Contains(position);
+    }
+
+    protected static Rectangle RotatedBounds(
+        Point topLeft,
+        double angle,
+        double width,
+        double height)
+    {
+        double angleRad = angle * Math.PI / 180.0;
+
+        // Mittelpunkt des ursprünglichen Rechtecks.
+        double centerX = topLeft.X + width / 2.0;
+        double centerY = topLeft.Y + height / 2.0;
+
+        // Abmessungen der umschließenden Bounding Box.
+        double boundingWidth =
+            Math.Abs(width * Math.Cos(angleRad))
+            + Math.Abs(height * Math.Sin(angleRad));
+
+        double boundingHeight =
+            Math.Abs(width * Math.Sin(angleRad))
+            + Math.Abs(height * Math.Cos(angleRad));
+
+        int left = (int)Math.Floor(
+            centerX - boundingWidth / 2.0);
+
+        int top = (int)Math.Floor(
+            centerY - boundingHeight / 2.0);
+
+        int right = (int)Math.Ceiling(
+            centerX + boundingWidth / 2.0);
+
+        int bottom = (int)Math.Ceiling(
+            centerY + boundingHeight / 2.0);
+
+        return Rectangle.FromLTRB(
+            left,
+            top,
+            right,
+            bottom);
     }
 }
