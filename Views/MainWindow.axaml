@@ -43,12 +43,7 @@
             <Button x:Name="TimerStart" Content="Start" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Width="96" Click="TimerStart_Click" />
             <Button x:Name="TimerStop" Content="Stop" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Width="96" Click="TimerStop_Click" />
         </Grid>
-        <Rectangle x:Name="ProductionLineRed"
-                Width="100"
-                Height="25"
-                Stroke="Black"
-                Canvas.Left="{Binding ProductionLineRed.ProductionLinePose.X}"
-                Canvas.Top="{Binding ProductionLineRed.ProductionLinePose.Y}">
+        <Rectangle x:Name="ProductionLineRed" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineRed.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineRed.ProductionLinePose.Y}">
             <Rectangle.RenderTransform>
                 <RotateTransform Angle="{Binding ProductionLineRed.ProductionLinePose.Angle}" />
             </Rectangle.RenderTransform>
@@ -56,12 +51,7 @@
                 <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineRed.jpeg" />
             </Rectangle.Fill>
         </Rectangle>
-        <Rectangle x:Name="ProductionLineBlue"
-                Width="100"
-                Height="25"
-                Stroke="Black"
-                Canvas.Left="{Binding ProductionLineBlue.ProductionLinePose.X}"
-                Canvas.Top="{Binding ProductionLineBlue.ProductionLinePose.Y}">
+        <Rectangle x:Name="ProductionLineBlue" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineBlue.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineBlue.ProductionLinePose.Y}">
             <Rectangle.RenderTransform>
                 <RotateTransform Angle="{Binding ProductionLineBlue.ProductionLinePose.Angle}" />
             </Rectangle.RenderTransform>
@@ -69,12 +59,7 @@
                 <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineBlue.jpeg" />
             </Rectangle.Fill>
         </Rectangle>
-        <Rectangle x:Name="ProductionLineYellow"
-                Width="100"
-                Height="25"
-                Stroke="Black"
-                Canvas.Left="{Binding ProductionLineYellow.ProductionLinePose.X}"
-                Canvas.Top="{Binding ProductionLineYellow.ProductionLinePose.Y}">
+        <Rectangle x:Name="ProductionLineYellow" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineYellow.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineYellow.ProductionLinePose.Y}">
             <Rectangle.RenderTransform>
                 <RotateTransform Angle="{Binding ProductionLineYellow.ProductionLinePose.Angle}" />
             </Rectangle.RenderTransform>
@@ -82,17 +67,28 @@
                 <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineYellow.jpeg" />
             </Rectangle.Fill>
         </Rectangle>
-        <Rectangle x:Name="ProductionLineGreen"
-                Width="100"
-                Height="25"
-                Stroke="Black"
-                Canvas.Left="{Binding ProductionLineGreen.ProductionLinePose.X}"
-                Canvas.Top="{Binding ProductionLineGreen.ProductionLinePose.Y}">
+        <Rectangle x:Name="ProductionLineGreen" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineGreen.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineGreen.ProductionLinePose.Y}">
             <Rectangle.RenderTransform>
                 <RotateTransform Angle="{Binding ProductionLineGreen.ProductionLinePose.Angle}" />
             </Rectangle.RenderTransform>
             <Rectangle.Fill>
                 <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineGreen.jpeg" />
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle x:Name="ProductionLineRecycle" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineRecycle.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineRecycle.ProductionLinePose.Y}">
+            <Rectangle.RenderTransform>
+                <RotateTransform Angle="{Binding ProductionLineRecycle.ProductionLinePose.Angle}" />
+            </Rectangle.RenderTransform>
+            <Rectangle.Fill>
+                <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineRecycle.png" />
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle x:Name="ProductionLineDelivery" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineDelivery.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineDelivery.ProductionLinePose.Y}">
+            <Rectangle.RenderTransform>
+                <RotateTransform Angle="{Binding ProductionLineDelivery.ProductionLinePose.Angle}" />
+            </Rectangle.RenderTransform>
+            <Rectangle.Fill>
+                <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineDelivery.png" />
             </Rectangle.Fill>
         </Rectangle>
         <Rectangle x:Name="brickRed1" Width="20" Height="12" Fill="Red" Stroke="Black" Canvas.Left="{Binding BricksView[0].X}" Canvas.Top="{Binding BricksView[0].Y}">

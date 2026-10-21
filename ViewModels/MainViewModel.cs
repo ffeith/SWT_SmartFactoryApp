@@ -23,6 +23,10 @@ public partial class MainViewModel : ViewModelBase
     public ProductionLine ProductionLineYellow => factory.ProductionLineYellow;
     public ProductionLine ProductionLineBlue => factory.ProductionLineBlue;
     public ProductionLine ProductionLineGreen => factory.ProductionLineGreen;
+    public ProductionLine ProductionLineRecycle => factory.ProductionLineRecycle;
+    public ProductionLine ProductionLineDelivery => factory.ProductionLineDelivery;
+    public double ProductionLineWidth => ViewParameters.ProductionLineWidth;
+    public double ProductionLineHeight => ViewParameters.ProductionLineHeight;
     public List<LegoBricksViewModel> BricksView { get; } = new List<LegoBricksViewModel>();
 
     public MainViewModel()
