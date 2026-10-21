@@ -45,8 +45,7 @@ public class Factory
     public void RobotBewegen(Direction direction)
     {
         robot.Bewegen(direction);
-        foreach (var brick in ProductionLine.Bricks)
-            robot.Kontak(brick);
+        CheckBrickContacts();
     }
     
     private int tickCount = 0;
@@ -64,8 +63,7 @@ public class Factory
         MoveBricksAlongLine(productionLineYellow, forward, 1);
         MoveBricksAlongLine(productionLineGreen, forward, -1);
 
-        foreach (var brick in ProductionLine.Bricks)
-            robot.Kontak(brick);
+        CheckBrickContacts();
     }
 
     private void MoveBricksAlongLine(
@@ -101,6 +99,22 @@ public class Factory
         {
             for (int i = 0; i < 4; i++)
                 robot.Bewegen(Direction.down);
+        }
+    }
+
+    private void CheckBrickContacts()
+    {
+        CheckBrickContacts(productionLineRed);
+        CheckBrickContacts(productionLineYellow);
+        CheckBrickContacts(productionLineBlue);
+        CheckBrickContacts(productionLineGreen);
+    }
+
+    private void CheckBrickContacts(ProductionLine line)
+    {
+        foreach (LegoBrick brick in line.Bricks)
+        {
+            robot.Kontak(brick);
         }
     }
 }
