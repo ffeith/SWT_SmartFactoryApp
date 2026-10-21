@@ -147,28 +147,61 @@ public class Beweger
 
     private void UpdateDockedObject()
     {
-        if (dockobjekt != null)
-            dockobjekt.Location = Greifpunkt(Location, rotation);
+        if (dockobjekt is not LegoBrick brick)
+            return;
+
+        int brickWidth = brick.Size == Parameters.LegoSize.large
+            ? BigBrickWidth
+            : SmallBrickWidth;
+
+        int brickHeight = brick.Size == Parameters.LegoSize.large
+            ? BigBrickHeight
+            : SmallBrickHeight;
+
+        Point tcp = Greifpunkt(Location, rotation);
+
+        // Die linke obere Ecke so berechnen,
+        // dass die Mitte des Steins am TCP liegt.
+        brick.Location = new Point(
+            tcp.X - brickWidth / 2,
+            tcp.Y - brickHeight / 2);
+
+        // Der Stein dreht sich mit dem Roboter.
+        brick.Angle = rotation;
     }
-    // private bool kollidiertMitProduktionslinie(Point newLoc)
-    // {
-    //     if (this is not Robot)
-    //     {
-    //         return false;
-    //     }
-    //     Rectangle robot = new Rectangle(newLoc, new Size(RobotWidth, RobotHeight));
-    //     return robot.IntersectsWith(ProductionLine);
-    // }
     public bool Kontak(Beweger objekt)
     {
-        Point tcp = Greifpunkt(location, rotation);
-        bool proximity = Math.Abs(tcp.X - objekt.Location.X) <= 10 && Math.Abs(tcp.Y - objekt.Location.Y) <= 10;
-        if (proximity && dockobjekt == null && objekt is LegoBrick aBrick && !aBrick.Gedockt)
+        if (objekt is not LegoBrick brick)
+            return false;
+
+        Point tcp = Greifpunkt(Location, rotation);
+
+        int brickWidth = brick.Size == Parameters.LegoSize.large
+            ? BigBrickWidth
+            : SmallBrickWidth;
+
+        int brickHeight = brick.Size == Parameters.LegoSize.large
+            ? BigBrickHeight
+            : SmallBrickHeight;
+
+        // Mitte des LEGO-Steins berechnen.
+        Point brickCenter = new Point(
+            brick.Location.X + brickWidth / 2,
+            brick.Location.Y + brickHeight / 2);
+
+        // Prüfen, ob der TCP nahe genug an der Steinmitte liegt.
+        bool proximity =
+            Math.Abs(tcp.X - brickCenter.X) <= 10
+            && Math.Abs(tcp.Y - brickCenter.Y) <= 10;
+
+        if (proximity && dockobjekt == null && !brick.Gedockt)
         {
-            aBrick.Gedockt = true;
-            dockobjekt = objekt;
-            dockobjekt.Location = tcp;
+            brick.Gedockt = true;
+            dockobjekt = brick;
+
+            UpdateDockedObject();
         }
+
         return proximity;
     }
 
