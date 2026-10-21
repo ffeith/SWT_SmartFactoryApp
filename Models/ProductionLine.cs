@@ -26,8 +26,8 @@ public class ProductionLine
 
     private void CreateBricks(Parameters.LegoColor color)
     {
-        const double productionLineWidth = 100;
-        const double productionLineHeight = 25;
+        double productionLineWidth = ViewParameters.ProductionLineWidth;
+        double productionLineHeight = ViewParameters.ProductionLineHeight;
 
         const double insideOffset = 25;
         const double brickSpacing = 24;

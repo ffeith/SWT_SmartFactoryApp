@@ -22,10 +22,14 @@ public class Factory
     private ProductionLine productionLineYellow = new ProductionLine(ProductionLinePoseYellow, Parameters.LegoColor.yellow);
     private ProductionLine productionLineBlue = new ProductionLine(ProductionLinePoseBlue, Parameters.LegoColor.blue);
     private ProductionLine productionLineGreen = new ProductionLine(ProductionLinePoseGreen, Parameters.LegoColor.green);
+    private ProductionLine productionLineRecycle = new ProductionLine(ProductionLinePoseRecycle);
+    private ProductionLine productionLineDelivery = new ProductionLine(ProductionLinePoseDelivery);
     public ProductionLine ProductionLineRed => productionLineRed;
     public ProductionLine ProductionLineYellow => productionLineYellow;
     public ProductionLine ProductionLineBlue => productionLineBlue;
     public ProductionLine ProductionLineGreen => productionLineGreen;
+    public ProductionLine ProductionLineRecycle => productionLineRecycle;
+    public ProductionLine ProductionLineDelivery => productionLineDelivery;
     private double ProductionLineRedX => productionLineRed.ProductionLinePose.X;
     private double ProductionLineRedY => productionLineRed.ProductionLinePose.Y;
     private double ProductionLineRedAngle => productionLineRed.ProductionLinePose.Angle;
@@ -38,6 +42,13 @@ public class Factory
     private double ProductionLineGreenX => productionLineGreen.ProductionLinePose.X;
     private double ProductionLineGreenY => productionLineGreen.ProductionLinePose.Y;
     private double ProductionLineGreenAngle => productionLineGreen.ProductionLinePose.Angle;
+    private double ProductionLineRecycleX => productionLineRecycle.ProductionLinePose.X;
+    private double ProductionLineRecycleY => productionLineRecycle.ProductionLinePose.Y;
+    private double ProductionLineRecycleAngle => productionLineRecycle.ProductionLinePose.Angle;
+    private double ProductionLineDeliveryX => productionLineDelivery.ProductionLinePose.X;
+    private double ProductionLineDeliveryY => productionLineDelivery.ProductionLinePose.Y;
+    private double ProductionLineDeliveryYngle => productionLineDelivery.ProductionLinePose.Angle;
+
     public Factory()
     {
         robot = new Robot(RobotPose.Location, Borders);

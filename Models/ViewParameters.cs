@@ -18,18 +18,20 @@ public static class ViewParameters
 {
     public static Pose RobotPose = new Pose(450, 300, 0);
     public static Pose BrickPose = new Pose(550, 550, 45);
-    public static Pose ProductionLinePoseRed = new Pose(380, 235, -45);
-    public static Pose ProductionLinePoseYellow = new Pose(380, 625, 45);
-    public static Pose ProductionLinePoseBlue = new Pose(767, 235, 45);
-    public static Pose ProductionLinePoseGreen = new Pose(767, 625, -45);
+    public static Pose ProductionLinePoseRed = new Pose(300, 320, 90);
+    public static Pose ProductionLinePoseBlue = new Pose(687, 320, 90);
+    public static Pose ProductionLinePoseYellow = new Pose(370, 535, 0);
+    public static Pose ProductionLinePoseGreen = new Pose(617, 535, 0);
+    public static Pose ProductionLinePoseRecycle = new Pose(493, 425, 0);
+    public static Pose ProductionLinePoseDelivery = new Pose(493, 183, 0);
     public static Rectangle Borders = new Rectangle(360, 183, 447, 474);
-    public static int RobotWidth = 50;
-    public static int RobotHeight = 30;
-    public static int ButtonWidth = 65;
-    public static int ButtonHeight = 30;
-    public static int FontSize = 14;
-    public static int productionLineWidth = 200;
-    public static int productionLineHeight = 30;
-    public static int brickWidth = 20;
-    public static int brickHeight = 20;
+    public const int RobotWidth = 50;
+    public const int RobotHeight = 30;
+    public const int ButtonWidth = 65;
+    public const int ButtonHeight = 30;
+    public const int FontSize = 14;
+    public const int ProductionLineWidth = 250;
+    public const int ProductionLineHeight = 40;
+    public const int BrickWidth = 20;
+    public const int BrickHeight = 20;
 }
