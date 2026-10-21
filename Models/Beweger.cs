@@ -10,7 +10,7 @@ public class Beweger
     private Rectangle borders;
     private double rotation;
     private double angle;
-    private Beweger dockobjekt;
+    private Beweger? dockobjekt;
 
     public Point Location                               //lange Syntax
     {
@@ -75,33 +75,32 @@ public class Beweger
                 rotation -= Parameters.turnAngle;
                 if (rotation <= -360)
                     rotation += 360;
-                break;
+                UpdateDockedObject();
+                return;
             case Parameters.Direction.turnRight:
                 rotation += Parameters.turnAngle;
                 if (rotation >= 360)
                     rotation -= 360;
-                break;
+                UpdateDockedObject();
+                return;
             case Parameters.Direction.zeroDegrees:
                 rotation = 0;
-                break;
+                UpdateDockedObject();
+                return;
             case Parameters.Direction.stop:
                 break;
             default:
                 break;
         }
 
-        int newX = location.X + (int)Math.Round(deltaX);
-        int newY = location.Y + (int)Math.Round(deltaY);
+        Point newLoc = new Point(
+        location.X + (int)Math.Round(deltaX),
+        location.Y + (int)Math.Round(deltaY));
+        if (!InnerhalbGrenzen(newLoc))
+            return;
+        Location = newLoc;
 
-        if (newX >= borders.Left && newX <= borders.Right && newY >= borders.Top && newY <= borders.Bottom)
-        {
-            Location = new Point(newX, newY);
-        }
-
-        if(InnerhalbGrenzen(new LocalDataStoreSlot, borders) && !kollidiertMitProduktionslinie(newLoc) && (dockobjekt == null || (InnerhalbGrenzen(Greifpunkt(newLoc), dockobjekt borders))))
-            location = newLoc;
-            if (dockobjekt != null)
-                dockobjekt.Location = Greifpunkt(location);
+        UpdateDockedObject();
     }
     public virtual void Bewegen(double deltaX, double deltaY)
     {
@@ -110,23 +109,42 @@ public class Beweger
 
         Location = new Point(newX, newY);
     }
-    private static Point Greifpunkt(Point p)
+    private static Point Greifpunkt(Point robotLocation, double robotRotation)
     {
-        return new Point(p.X + ViewParameters.RobotWidth, p.Y);
+        double angleRad = robotRotation * Math.PI / 180.0;
+
+        double centerX = robotLocation.X + RobotWidth / 2.0;
+        double centerY = robotLocation.Y + RobotHeight / 2.0;
+
+        double tcpX = centerX
+                    + RobotHeight / 2.0 * Math.Sin(angleRad);
+
+        double tcpY = centerY
+                    - RobotHeight / 2.0 * Math.Cos(angleRad);
+
+        return new Point(
+            (int)Math.Round(tcpX),
+            (int)Math.Round(tcpY));
     }
-    private bool kollidiertMitProduktionslinie(Point newLoc)
+
+    private void UpdateDockedObject()
     {
-        if (this is not Robot)
-        {
-            return false;
-        }
-        Rectangle robot = new Rectangle(newLoc, new Size(RobotWidth, RobotHeight));
-        return robot.IntersectsWith(ProductionLine);
+        if (dockobjekt != null)
+            dockobjekt.Location = Greifpunkt(Location, rotation);
     }
+    // private bool kollidiertMitProduktionslinie(Point newLoc)
+    // {
+    //     if (this is not Robot)
+    //     {
+    //         return false;
+    //     }
+    //     Rectangle robot = new Rectangle(newLoc, new Size(RobotWidth, RobotHeight));
+    //     return robot.IntersectsWith(ProductionLine);
+    // }
     public bool Kontak(Beweger objekt)
     {
-        Point tcp = Greifpunkt(location);
-        bool proximity = Math.Abs(tcp.X - objekt.Location.X) <= 10 && Math.Abs(tcp.Y - object.Location.Y) <= 10;
+        Point tcp = Greifpunkt(location, rotation);
+        bool proximity = Math.Abs(tcp.X - objekt.Location.X) <= 10 && Math.Abs(tcp.Y - objekt.Location.Y) <= 10;
         if (proximity && dockobjekt == null && objekt is LegoBrick aBrick && !aBrick.Gedockt)
         {
             aBrick.Gedockt = true;
@@ -144,5 +162,18 @@ public class Beweger
             aBrick.Gedockt = false;
         dockobjekt = null;
         return true;
+    }
+
+    private bool InnerhalbGrenzen(Point position)
+    {
+        if (this is Robot)
+        {
+            return position.X >= borders.Left
+                && position.Y >= borders.Top
+                && position.X + RobotWidth <= borders.Right
+                && position.Y + RobotHeight <= borders.Bottom;
+        }
+
+        return borders.Contains(position);
     }
 }

@@ -177,7 +177,7 @@
         </Rectangle>
         <Rectangle x:Name="robotRectangle" Width="70" Height="50" Stroke="Black" Canvas.Left="{Binding RobotX}" Canvas.Top="{Binding RobotY}" >
             <Rectangle.Fill>
-                <ImageBrush Source="avares://MyAvaloniaApp/Assets/RobotV2.jpeg" />
+                <ImageBrush Source="avares://MyAvaloniaApp/Assets/robotV3.png" />
             </Rectangle.Fill>
             <Rectangle.RenderTransform>
                 <RotateTransform Angle="{Binding Rotation}" />
