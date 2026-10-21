@@ -68,4 +68,11 @@ public partial class MainWindow : Window
     {
         ViewModel?.TimerStop();
     }
+    private void Undock_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.Undock();
+        }
+    }
 }

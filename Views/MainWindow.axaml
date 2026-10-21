@@ -39,10 +39,11 @@
             <Button x:Name="TurnRight" Content="Turn R" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Width="65" Click="TurnRight_Click" />
             <Button x:Name="TurnToZeroDegrees" Content="0°" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Width="65" Click="TurnToZeroDegrees_Click" />
         </Grid>
+        <Button x:Name="UndockButton" Content="Undock" Width="150" Canvas.Left="970" Canvas.Top="705" Click="Undock_Click" />
         <StackPanel
             Canvas.Left="970"
-            Canvas.Top="640"
-            Spacing="8">
+            Canvas.Top="630"
+            Spacing="2">
 
             <RadioButton
                 GroupName="RobotMovementMode"

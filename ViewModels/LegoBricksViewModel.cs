@@ -30,6 +30,6 @@ public partial class LegoBricksViewModel : ViewModelBase
     {
         X = brick.Location.X;
         Y = brick.Location.Y;
-        Angle = brick.LegoPose.Angle;
+        Angle = brick.Angle;
     }
 }

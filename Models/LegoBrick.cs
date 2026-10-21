@@ -28,4 +28,10 @@ public class LegoBrick : Beweger
         if (Gedockt) return;
         base.Bewegen(direction);
     }
+
+    public override void Bewegen(double deltaX, double deltaY)
+    {
+        if (Gedockt) return;
+        base.Bewegen(deltaX, deltaY);
+    }
 }

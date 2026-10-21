@@ -70,6 +70,7 @@ public partial class MainViewModel : ViewModelBase
         {
             movement();
             NotifyRobotPoseChanged();
+            NotifyLegoBricksPoseChange();
             return;
         }
 
@@ -79,6 +80,7 @@ public partial class MainViewModel : ViewModelBase
         // Sofort den ersten Schritt ausführen.
         movement();
         NotifyRobotPoseChanged();
+        NotifyLegoBricksPoseChange();
 
         // Anschließend die Bewegung regelmäßig wiederholen.
         robotMovementTimer.Start();
@@ -88,6 +90,7 @@ public partial class MainViewModel : ViewModelBase
     {
         currentRobotMovement?.Invoke();
         NotifyRobotPoseChanged();
+        NotifyLegoBricksPoseChange();
     }
 
     public void MoveUp()
@@ -160,6 +163,7 @@ public partial class MainViewModel : ViewModelBase
         StopContinuousRobotMovement();
         factory.RobotBewegen(Direction.zeroDegrees);
         NotifyRobotPoseChanged();
+        NotifyLegoBricksPoseChange();
     }
 
     private void StopContinuousRobotMovement()
@@ -222,5 +226,12 @@ public partial class MainViewModel : ViewModelBase
         // Beide Auswahlkreise aktualisieren.
         OnPropertyChanged(nameof(IsStepMovementSelected));
         OnPropertyChanged(nameof(IsContinuousMovementSelected));
+    }
+
+    public void Undock()
+    {
+        factory.Undock();
+        NotifyRobotPoseChanged();
+        NotifyLegoBricksPoseChange();
     }
 }
