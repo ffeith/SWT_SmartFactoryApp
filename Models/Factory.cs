@@ -10,14 +10,16 @@ using System.Collections.Generic;
 using Avalonia.Controls;
 using System;
 
-namespace MyAvaloniaApp.ViewModels;
+namespace MyAvaloniaApp.Models;
 
 public class Factory
 {
     private Robot robot;
     public double RobotX => robot.Location.X;
     public double RobotY => robot.Location.Y;
-    public double Rotation => robot.Rotation;
+    public double RobotAngle => robot.Rotation;
+    public Direction RobotDirection => robot.RobotDirection;
+    public double Rotation => RobotAngle;
     private ProductionLine productionLineRed = new ProductionLine(ProductionLinePoseRed, Parameters.LegoColor.red);
     private ProductionLine productionLineYellow = new ProductionLine(ProductionLinePoseYellow, Parameters.LegoColor.yellow);
     private ProductionLine productionLineBlue = new ProductionLine(ProductionLinePoseBlue, Parameters.LegoColor.blue);
@@ -48,6 +50,10 @@ public class Factory
     private double ProductionLineDeliveryX => productionLineDelivery.ProductionLinePose.X;
     private double ProductionLineDeliveryY => productionLineDelivery.ProductionLinePose.Y;
     private double ProductionLineDeliveryYngle => productionLineDelivery.ProductionLinePose.Angle;
+    public List<LegoBrick> RedBricks => productionLineRed.Bricks;
+    public List<LegoBrick> BlueBricks => productionLineBlue.Bricks;
+    public List<LegoBrick> GreenBricks => productionLineGreen.Bricks;
+    public List<LegoBrick> YellowBricks => productionLineYellow.Bricks;
 
     public Factory()
     {
@@ -69,49 +75,14 @@ public class Factory
         CheckBrickContacts();
     }
     
-    private int tickCount = 0;
-
-    public void MoveBricks()
+    public void LegoBricksBewegen()
     {
-        const int stepsPerDirection = 10;
-
-        bool forward = tickCount < stepsPerDirection;
-
-        tickCount = (tickCount + 1) % (stepsPerDirection * 2);
-
-        MoveBricksAlongLine(productionLineRed, forward, 1);
-        MoveBricksAlongLine(productionLineBlue, forward, -1);
-        MoveBricksAlongLine(productionLineYellow, forward, 1);
-        MoveBricksAlongLine(productionLineGreen, forward, -1);
+        productionLineRed.Bewegen(-1);
+        productionLineBlue.Bewegen(-1);
+        productionLineYellow.Bewegen(1);
+        productionLineGreen.Bewegen(-1);
 
         CheckBrickContacts();
-    }
-
-    private void MoveBricksAlongLine(
-        ProductionLine line,
-        bool forward,
-        int directionSign)
-    {
-        double angleRad = line.ProductionLinePose.Angle * Math.PI / 180.0;
-        double deltaX = Math.Cos(angleRad) * directionSign;                 //Richtung entlang der Produktionslinie
-        double deltaY = Math.Sin(angleRad) * directionSign;
-        double timeScale = Parameters.timerInterval / 50.0;                 //Schrittweite an das Timerintervall anpassen, X = Y wegen 45°
-        double distance = Parameters.step * Math.Sqrt(2) * timeScale;
-
-        deltaX *= distance;
-        deltaY *= distance;
-
-        if (!forward)                                                       //Nach 30 Ticks die Bewegungsrichtung umkehren
-        {
-            deltaX = -deltaX;
-            deltaY = -deltaY;
-        }
-
-        // Alle vier Steine dieser Produktionslinie bewegen
-        foreach (LegoBrick brick in line.Bricks)
-        {
-            brick.Bewegen(deltaX, deltaY);
-        }
     }
 
     public void Undock()
@@ -135,7 +106,7 @@ public class Factory
     {
         foreach (LegoBrick brick in line.Bricks)
         {
-            robot.Kontak(brick);
+            robot.Kontakt(brick);
         }
     }
 }

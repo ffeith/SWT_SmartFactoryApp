@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using static MyAvaloniaApp.Models.ViewParameters;
 using static MyAvaloniaApp.Models.Parameters;
 
@@ -8,10 +9,12 @@ namespace MyAvaloniaApp.Models;
 public class ProductionLine
 {
     public Pose ProductionLinePose { get; }
-
+    public Point Location => ProductionLinePose.Location;
+    public int Angle => ProductionLinePose.Angle;
     private List<LegoBrick> bricks = new List<LegoBrick>();
-
     public List<LegoBrick> Bricks => bricks;
+    private int tickCount = 0;
+    private int stepsPerDirection = 10;
 
     public ProductionLine(Pose pose)
     {
@@ -80,6 +83,37 @@ public class ProductionLine
                 ProductionLinePose.Angle);
 
             bricks.Add(new LegoBrick(brickPose, color, brickSize));
+        }
+    }
+
+    public void Bewegen(int directionSign)
+    {
+        bool forward = tickCount < stepsPerDirection;
+
+        tickCount =
+            (tickCount + 1) % (stepsPerDirection * 2);
+
+        double angleRad =
+            ProductionLinePose.Angle * Math.PI / 180.0;
+
+        double deltaX = Math.Cos(angleRad) * directionSign;
+        double deltaY = Math.Sin(angleRad) * directionSign;
+
+        double timeScale = Parameters.timerInterval / 50.0;
+        double distance = Parameters.step * Math.Sqrt(2) * timeScale;
+
+        deltaX *= distance;
+        deltaY *= distance;
+
+        if (!forward)
+        {
+            deltaX = -deltaX;
+            deltaY = -deltaY;
+        }
+
+        foreach (LegoBrick brick in Bricks)
+        {
+            brick.Bewegen(deltaX, deltaY);
         }
     }
 }
