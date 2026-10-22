@@ -260,15 +260,14 @@ public class Beweger
         return proximity;
     }
 
-    public bool Undock()
+    public LegoBrick? Undock()
     {
-        if (dockobjekt == null)
-            return false;
-        if (dockobjekt is LegoBrick aBrick)
-            aBrick.Gedockt = false;
+        if (dockobjekt is not LegoBrick brick)
+            return null;
+        brick.Gedockt = false;
         dockobjekt = null;
         dockWinkelOffset = 0;
-        return true;
+        return brick;
     }
 
     protected virtual bool PositionErlaubt(Point position, double candidateRotation)

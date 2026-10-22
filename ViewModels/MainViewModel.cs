@@ -50,6 +50,9 @@ public partial class MainViewModel : ViewModelBase
         foreach (var brick in factory.ProductionLineGreen.Bricks)
             BricksView.Add(new LegoBricksViewModel(brick));
 
+        foreach (var brick in factory.ProductionLineRecycle.Bricks)
+            BricksView.Add(new LegoBricksViewModel(brick));
+
         timer = new DispatcherTimer();
         timer.Interval = TimeSpan.FromMilliseconds(timerInterval);
         timer.Tick += Timer_Tick;

@@ -24,7 +24,17 @@ public class Factory
     private ProductionLine productionLineYellow = new ProductionLine(ProductionLinePoseYellow, Parameters.LegoColor.yellow);
     private ProductionLine productionLineBlue = new ProductionLine(ProductionLinePoseBlue, Parameters.LegoColor.blue);
     private ProductionLine productionLineGreen = new ProductionLine(ProductionLinePoseGreen, Parameters.LegoColor.green);
-    private ProductionLine productionLineRecycle = new ProductionLine(ProductionLinePoseRecycle);
+    private ProductionLine productionLineRecycle =
+    new ProductionLine(
+        ProductionLinePoseRecycle,
+        new[]
+        {
+            Parameters.LegoColor.yellow,
+            Parameters.LegoColor.red,
+            Parameters.LegoColor.green,
+            Parameters.LegoColor.blue
+        },
+        true);
     private ProductionLine productionLineDelivery = new ProductionLine(ProductionLinePoseDelivery);
     public ProductionLine ProductionLineRed => productionLineRed;
     public ProductionLine ProductionLineYellow => productionLineYellow;
@@ -54,6 +64,7 @@ public class Factory
     public List<LegoBrick> BlueBricks => productionLineBlue.Bricks;
     public List<LegoBrick> GreenBricks => productionLineGreen.Bricks;
     public List<LegoBrick> YellowBricks => productionLineYellow.Bricks;
+    private readonly List<LegoBrick> logistics = new List<LegoBrick>();
 
     public Factory()
     {
@@ -87,11 +98,17 @@ public class Factory
 
     public void Undock()
     {
-        if (robot.Undock())
-        {
-            for (int i = 0; i < 4; i++)
-                robot.Bewegen(Direction.down);
-        }
+        LegoBrick? releasedBrick = robot.Undock();
+
+        if (releasedBrick == null)
+            return;
+
+        if (!logistics.Contains(releasedBrick))
+            logistics.Add(releasedBrick);
+
+        // Den Roboter rückwärts bewegen.
+        for (int i = 0; i < 4; i++)
+            robot.Bewegen(Direction.down);
     }
 
     private void CheckBrickContacts()
@@ -100,13 +117,34 @@ public class Factory
         CheckBrickContacts(productionLineYellow);
         CheckBrickContacts(productionLineBlue);
         CheckBrickContacts(productionLineGreen);
+        CheckBrickContacts(productionLineRecycle);
+
+        // Abgesetzte Steine können erneut aufgenommen werden.
+        foreach (LegoBrick brick in new List<LegoBrick>(logistics))
+        {
+            bool wasDocked = brick.Gedockt;
+
+            robot.Kontakt(brick);
+
+            // Wurde dieser Stein gerade erneut aufgenommen?
+            if (!wasDocked && brick.Gedockt)
+                logistics.Remove(brick);
+        }
     }
 
     private void CheckBrickContacts(ProductionLine line)
     {
-        foreach (LegoBrick brick in line.Bricks)
+        // Kopie erstellen, weil wir die ursprüngliche Liste
+        // beim erfolgreichen Aufnehmen verändern können.
+        foreach (LegoBrick brick in new List<LegoBrick>(line.Bricks))
         {
+            bool wasDocked = brick.Gedockt;
+
             robot.Kontakt(brick);
+
+            // Nur bei einer tatsächlich erfolgreichen Aufnahme entfernen.
+            if (!wasDocked && brick.Gedockt)
+                line.Bricks.Remove(brick);
         }
     }
 }

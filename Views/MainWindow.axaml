@@ -188,6 +188,57 @@
                 <RotateTransform Angle="{Binding BricksView[15].Angle}" />
             </Rectangle.RenderTransform>
         </Rectangle>
+        <Rectangle
+            x:Name="brickRecycle1"
+            Width="{Binding BricksView[16].Width}"
+            Height="{Binding BricksView[16].Height}"
+            Fill="Yellow"
+            Stroke="Black"
+            Canvas.Left="{Binding BricksView[16].X}"
+            Canvas.Top="{Binding BricksView[16].Y}">
+            <Rectangle.RenderTransform>
+                <RotateTransform Angle="{Binding BricksView[16].Angle}" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+
+        <Rectangle
+            x:Name="brickRecycle2"
+            Width="{Binding BricksView[17].Width}"
+            Height="{Binding BricksView[17].Height}"
+            Fill="Red"
+            Stroke="Black"
+            Canvas.Left="{Binding BricksView[17].X}"
+            Canvas.Top="{Binding BricksView[17].Y}">
+            <Rectangle.RenderTransform>
+                <RotateTransform Angle="{Binding BricksView[17].Angle}" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+
+        <Rectangle
+            x:Name="brickRecycle3"
+            Width="{Binding BricksView[18].Width}"
+            Height="{Binding BricksView[18].Height}"
+            Fill="Green"
+            Stroke="Black"
+            Canvas.Left="{Binding BricksView[18].X}"
+            Canvas.Top="{Binding BricksView[18].Y}">
+            <Rectangle.RenderTransform>
+                <RotateTransform Angle="{Binding BricksView[18].Angle}" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+
+        <Rectangle
+            x:Name="brickRecycle4"
+            Width="{Binding BricksView[19].Width}"
+            Height="{Binding BricksView[19].Height}"
+            Fill="Blue"
+            Stroke="Black"
+            Canvas.Left="{Binding BricksView[19].X}"
+            Canvas.Top="{Binding BricksView[19].Y}">
+            <Rectangle.RenderTransform>
+                <RotateTransform Angle="{Binding BricksView[19].Angle}" />
+            </Rectangle.RenderTransform>
+        </Rectangle>
         <Rectangle x:Name="robotRectangle" Width="{Binding RobotWidth}" Height="{Binding RobotHeight}" Stroke="Black" Canvas.Left="{Binding RobotX}" Canvas.Top="{Binding RobotY}" >
             <Rectangle.Fill>
                 <ImageBrush Source="avares://MyAvaloniaApp/Assets/robotV3.png" />
