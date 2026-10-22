@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Drawing;
 using static MyAvaloniaApp.Models.ViewParameters;
 
@@ -11,6 +12,8 @@ public class Beweger
     private double rotation;
     private double angle;
     private Beweger? dockobjekt;
+    private double dockWinkelOffset;
+    private readonly IReadOnlyList<ProductionLine> productionLines;
 
     public Point Location                               //lange Syntax
     {
@@ -32,22 +35,34 @@ public class Beweger
         get {return angle;} set {angle = value;}
     }
 
-    public Beweger(Point location, Rectangle borders)
+    public Beweger(
+    Point location,
+    Rectangle borders,
+    IReadOnlyList<ProductionLine>? productionLines = null)
     {
-        //this.location = location;
-        //this.borders = borders;
-        Location = location;                            //Properties -> Location ist Methode, die location als value verwendet (Alternative zu this->): Macht den Code flexibler
+        Location = location;
         Borders = borders;
+        this.productionLines = productionLines ?? Array.Empty<ProductionLine>();
     }
-    public Beweger(Pose pose, Rectangle borders)
+
+    public Beweger(
+        Pose pose,
+        Rectangle borders,
+        IReadOnlyList<ProductionLine>? productionLines = null)
     {
         Location = pose.Location;
         Angle = pose.Angle;
         Borders = borders;
+        this.productionLines = productionLines ?? Array.Empty<ProductionLine>();
     }
 
     public virtual void Bewegen(Parameters.Direction direction)
     {
+        if (direction == Parameters.Direction.turnLeft || direction == Parameters.Direction.turnRight || direction == Parameters.Direction.zeroDegrees)
+        {
+            Drehen(direction);
+            return;
+        }
         double angleRad = rotation * Math.PI / 180.0;
 
         double deltaX = 0;
@@ -118,7 +133,47 @@ public class Beweger
         Location = newLoc;
         rotation = candidateRotation;
 
-        UpdateDockedObject();
+        DockobjektNachziehen();
+    }
+
+    private void Drehen(Parameters.Direction direction)
+    {
+        double candidateRotation = rotation;
+
+        switch (direction)
+        {
+            case Parameters.Direction.turnLeft:
+                candidateRotation -= Parameters.turnAngle;
+
+                if (candidateRotation <= -360)
+                    candidateRotation += 360;
+
+                break;
+
+            case Parameters.Direction.turnRight:
+                candidateRotation += Parameters.turnAngle;
+
+                if (candidateRotation >= 360)
+                    candidateRotation -= 360;
+
+                break;
+
+            case Parameters.Direction.zeroDegrees:
+                candidateRotation = 0;
+                break;
+
+            default:
+                return;
+        }
+
+        // Prüfen, ob die Drehung zulässig ist.
+        if (!PositionErlaubt(Location, candidateRotation))
+            return;
+
+        rotation = candidateRotation;
+
+        // Einen aufgenommenen Stein nachziehen.
+        DockobjektNachziehen();
     }
     public virtual void Bewegen(double deltaX, double deltaY)
     {
@@ -145,7 +200,7 @@ public class Beweger
             (int)Math.Round(tcpY));
     }
 
-    private void UpdateDockedObject()
+    private void DockobjektNachziehen()
     {
         if (dockobjekt is not LegoBrick brick)
             return;
@@ -167,9 +222,9 @@ public class Beweger
             tcp.Y - brickHeight / 2);
 
         // Der Stein dreht sich mit dem Roboter.
-        brick.Angle = rotation;
+        brick.Angle = rotation + dockWinkelOffset;
     }
-    public bool Kontak(Beweger objekt)
+    public bool Kontakt(Beweger objekt)
     {
         if (objekt is not LegoBrick brick)
             return false;
@@ -196,10 +251,10 @@ public class Beweger
 
         if (proximity && dockobjekt == null && !brick.Gedockt)
         {
+            dockWinkelOffset = brick.Angle - Rotation;
             brick.Gedockt = true;
             dockobjekt = brick;
-
-            UpdateDockedObject();
+            DockobjektNachziehen();
         }
 
         return proximity;
@@ -212,67 +267,193 @@ public class Beweger
         if (dockobjekt is LegoBrick aBrick)
             aBrick.Gedockt = false;
         dockobjekt = null;
+        dockWinkelOffset = 0;
         return true;
     }
 
-    protected virtual bool PositionErlaubt(
-    Point position,
-    double candidateRotation)
+    protected virtual bool PositionErlaubt(Point position, double candidateRotation)
     {
-        if (this is Robot)
-        {
-            Rectangle robotBounds = RotatedBounds(
-                position,
-                candidateRotation,
-                RobotWidth,
-                RobotHeight);
+        // Für andere Beweger, beispielsweise LEGO-Steine,
+        // bleibt die bisherige Grenzprüfung bestehen.
+        if (this is not Robot)
+            return Borders.Contains(position);
 
-            return robotBounds.Left >= Borders.Left
-                && robotBounds.Top >= Borders.Top
-                && robotBounds.Right <= Borders.Right
-                && robotBounds.Bottom <= Borders.Bottom;
+        // 1. Die tatsächlichen Ecken des gedrehten Roboters berechnen.
+        PointF[] robotCorners = RotatedCorners(
+            position,
+            candidateRotation,
+            RobotWidth,
+            RobotHeight);
+
+        // Prüfen, ob der Roboter innerhalb der Fabrik bleibt.
+        foreach (PointF corner in robotCorners)
+        {
+            if (corner.X < Borders.Left
+                || corner.Y < Borders.Top
+                || corner.X > Borders.Right
+                || corner.Y > Borders.Bottom)
+            {
+                return false;
+            }
         }
 
-        return Borders.Contains(position);
-    }
+        // 2. Kollisionen mit den Produktionslinien prüfen.
+        if (KollidiertMitProduktionslinie(position, candidateRotation))
+            return false;
 
-    protected static Rectangle RotatedBounds(
-        Point topLeft,
-        double angle,
-        double width,
-        double height)
+        // 3. Falls ein LEGO-Stein aufgenommen ist,
+        // prüfen, ob auch dieser innerhalb der Fabrik bleibt.
+        if (dockobjekt is LegoBrick brick)
+        {
+            int brickWidth = brick.Size == Parameters.LegoSize.large
+                ? BigBrickWidth
+                : SmallBrickWidth;
+
+            int brickHeight = brick.Size == Parameters.LegoSize.large
+                ? BigBrickHeight
+                : SmallBrickHeight;
+
+            // TCP für die geplante Position und Rotation berechnen.
+            Point tcp = Greifpunkt(position, candidateRotation);
+
+            // Die Mitte des Steins liegt am TCP.
+            Point brickLocation = new Point(
+                tcp.X - brickWidth / 2,
+                tcp.Y - brickHeight / 2);
+
+            // Den relativen Winkel des aufgenommenen Steins berücksichtigen.
+            double brickRotation =
+                candidateRotation + dockWinkelOffset;
+
+            // Ecken des gedrehten LEGO-Steins berechnen.
+            PointF[] brickCorners = RotatedCorners(
+                brickLocation,
+                brickRotation,
+                brickWidth,
+                brickHeight);
+
+            foreach (PointF corner in brickCorners)
+            {
+                if (corner.X < Borders.Left
+                    || corner.Y < Borders.Top
+                    || corner.X > Borders.Right
+                    || corner.Y > Borders.Bottom)
+                {
+                    return false;
+                }
+            }
+        }
+
+        // Alle Prüfungen bestanden.
+        return true;
+    }
+    private bool KollidiertMitProduktionslinie(
+    Point robotPosition,
+    double robotRotation)
+    {
+        PointF[] robotCorners = RotatedCorners(
+            robotPosition,
+            robotRotation,
+            RobotWidth,
+            RobotHeight);
+
+        foreach (ProductionLine line in productionLines)
+        {
+            Point lineLocation = new Point(
+                line.ProductionLinePose.X,
+                line.ProductionLinePose.Y);
+
+            PointF[] lineCorners = RotatedCorners(
+                lineLocation,
+                line.ProductionLinePose.Angle,
+                ProductionLineWidth,
+                ProductionLineHeight);
+
+            if (RechteckeÜberlappen(robotCorners, lineCorners))
+                return true;
+        }
+
+        return false;
+    }
+    protected static PointF[] RotatedCorners(
+    Point topLeft,
+    double angle,
+    double width,
+    double height)
     {
         double angleRad = angle * Math.PI / 180.0;
 
-        // Mittelpunkt des ursprünglichen Rechtecks.
         double centerX = topLeft.X + width / 2.0;
         double centerY = topLeft.Y + height / 2.0;
 
-        // Abmessungen der umschließenden Bounding Box.
-        double boundingWidth =
-            Math.Abs(width * Math.Cos(angleRad))
-            + Math.Abs(height * Math.Sin(angleRad));
+        double halfWidth = width / 2.0;
+        double halfHeight = height / 2.0;
 
-        double boundingHeight =
-            Math.Abs(width * Math.Sin(angleRad))
-            + Math.Abs(height * Math.Cos(angleRad));
+        double cos = Math.Cos(angleRad);
+        double sin = Math.Sin(angleRad);
 
-        int left = (int)Math.Floor(
-            centerX - boundingWidth / 2.0);
+        PointF Rotate(double x, double y)
+        {
+            return new PointF(
+                (float)(centerX + x * cos - y * sin),
+                (float)(centerY + x * sin + y * cos));
+        }
 
-        int top = (int)Math.Floor(
-            centerY - boundingHeight / 2.0);
+        return new[]
+        {
+            Rotate(-halfWidth, -halfHeight),
+            Rotate( halfWidth, -halfHeight),
+            Rotate( halfWidth,  halfHeight),
+            Rotate(-halfWidth,  halfHeight)
+        };
+    }
+    private static bool RechteckeÜberlappen(
+    PointF[] rectangleA,
+    PointF[] rectangleB)
+    {
+        return !HasSeparatingAxis(rectangleA, rectangleB)
+            && !HasSeparatingAxis(rectangleB, rectangleA);
+    }
 
-        int right = (int)Math.Ceiling(
-            centerX + boundingWidth / 2.0);
+    private static bool HasSeparatingAxis(
+        PointF[] polygon,
+        PointF[] other)
+    {
+        for (int i = 0; i < polygon.Length; i++)
+        {
+            PointF first = polygon[i];
+            PointF second = polygon[(i + 1) % polygon.Length];
 
-        int bottom = (int)Math.Ceiling(
-            centerY + boundingHeight / 2.0);
+            double axisX = -(second.Y - first.Y);
+            double axisY = second.X - first.X;
 
-        return Rectangle.FromLTRB(
-            left,
-            top,
-            right,
-            bottom);
+            double minA = double.PositiveInfinity;
+            double maxA = double.NegativeInfinity;
+            double minB = double.PositiveInfinity;
+            double maxB = double.NegativeInfinity;
+
+            foreach (PointF point in polygon)
+            {
+                double projection =
+                    point.X * axisX + point.Y * axisY;
+
+                minA = Math.Min(minA, projection);
+                maxA = Math.Max(maxA, projection);
+            }
+
+            foreach (PointF point in other)
+            {
+                double projection =
+                    point.X * axisX + point.Y * axisY;
+
+                minB = Math.Min(minB, projection);
+                maxB = Math.Max(maxB, projection);
+            }
+
+            if (maxA <= minB || maxB <= minA)
+                return true;
+        }
+
+        return false;
     }
 }

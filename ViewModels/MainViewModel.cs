@@ -59,7 +59,7 @@ public partial class MainViewModel : ViewModelBase
     }
     private void Timer_Tick(object? sender, EventArgs e)
     {
-        factory.MoveBricks();
+        factory.LegoBricksBewegen();
         NotifyLegoBricksPoseChange();
     }
 
