@@ -1,18 +1,27 @@
+using System;
+using System.Collections.Generic;
 using System.Drawing;
+using static MyAvaloniaApp.Models.ViewParameters;
 
 namespace MyAvaloniaApp.Models;
 
 public class Robot : Beweger
 {
-    public Robot(Point location, Rectangle borders) : base(location, borders)
+    private Parameters.Direction robotDirection = Parameters.Direction.stop;
+    public Parameters.Direction RobotDirection
     {
-        //this.location = location;
-        //this.borders = borders;
-        Location = location;                            //Properties -> Location ist Methode, die location als value verwendet (Alternative zu this->): Macht den Code flexibler
-        Borders = borders;
+        get => robotDirection;
+        private set => robotDirection = value;
     }
+
+    public Robot(Point location, Rectangle borders, IReadOnlyList<ProductionLine> productionLines) : base(location, borders, productionLines)
+    {
+        
+    }
+
     public override void Bewegen(Parameters.Direction direction)
     {
+        RobotDirection = direction;
         base.Bewegen(direction);
     }
 }

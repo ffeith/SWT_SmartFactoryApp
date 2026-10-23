@@ -44,6 +44,10 @@ public partial class MainWindow : Window
     {
         ViewModel?.MoveDownRight();
     }
+    private void StopButton_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.StopButton();
+    }
     private void TurnLeft_Click(object sender, RoutedEventArgs e)
     {
         ViewModel?.TurnLeft();
@@ -63,5 +67,12 @@ public partial class MainWindow : Window
     private void TimerStop_Click(object sender, RoutedEventArgs e)
     {
         ViewModel?.TimerStop();
+    }
+    private void Undock_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.Undock();
+        }
     }
 }

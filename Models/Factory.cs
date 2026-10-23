@@ -10,22 +10,38 @@ using System.Collections.Generic;
 using Avalonia.Controls;
 using System;
 
-namespace MyAvaloniaApp.ViewModels;
+namespace MyAvaloniaApp.Models;
 
 public class Factory
 {
     private Robot robot;
     public double RobotX => robot.Location.X;
     public double RobotY => robot.Location.Y;
-    public double Rotation => robot.Rotation;
+    public double RobotAngle => robot.Rotation;
+    public Direction RobotDirection => robot.RobotDirection;
+    public double Rotation => RobotAngle;
     private ProductionLine productionLineRed = new ProductionLine(ProductionLinePoseRed, Parameters.LegoColor.red);
     private ProductionLine productionLineYellow = new ProductionLine(ProductionLinePoseYellow, Parameters.LegoColor.yellow);
     private ProductionLine productionLineBlue = new ProductionLine(ProductionLinePoseBlue, Parameters.LegoColor.blue);
     private ProductionLine productionLineGreen = new ProductionLine(ProductionLinePoseGreen, Parameters.LegoColor.green);
+    private ProductionLine productionLineRecycle =
+    new ProductionLine(
+        ProductionLinePoseRecycle,
+        new[]
+        {
+            Parameters.LegoColor.yellow,
+            Parameters.LegoColor.red,
+            Parameters.LegoColor.green,
+            Parameters.LegoColor.blue
+        },
+        true);
+    private ProductionLine productionLineDelivery = new ProductionLine(ProductionLinePoseDelivery);
     public ProductionLine ProductionLineRed => productionLineRed;
     public ProductionLine ProductionLineYellow => productionLineYellow;
     public ProductionLine ProductionLineBlue => productionLineBlue;
     public ProductionLine ProductionLineGreen => productionLineGreen;
+    public ProductionLine ProductionLineRecycle => productionLineRecycle;
+    public ProductionLine ProductionLineDelivery => productionLineDelivery;
     private double ProductionLineRedX => productionLineRed.ProductionLinePose.X;
     private double ProductionLineRedY => productionLineRed.ProductionLinePose.Y;
     private double ProductionLineRedAngle => productionLineRed.ProductionLinePose.Angle;
@@ -38,55 +54,97 @@ public class Factory
     private double ProductionLineGreenX => productionLineGreen.ProductionLinePose.X;
     private double ProductionLineGreenY => productionLineGreen.ProductionLinePose.Y;
     private double ProductionLineGreenAngle => productionLineGreen.ProductionLinePose.Angle;
+    private double ProductionLineRecycleX => productionLineRecycle.ProductionLinePose.X;
+    private double ProductionLineRecycleY => productionLineRecycle.ProductionLinePose.Y;
+    private double ProductionLineRecycleAngle => productionLineRecycle.ProductionLinePose.Angle;
+    private double ProductionLineDeliveryX => productionLineDelivery.ProductionLinePose.X;
+    private double ProductionLineDeliveryY => productionLineDelivery.ProductionLinePose.Y;
+    private double ProductionLineDeliveryYngle => productionLineDelivery.ProductionLinePose.Angle;
+    public List<LegoBrick> RedBricks => productionLineRed.Bricks;
+    public List<LegoBrick> BlueBricks => productionLineBlue.Bricks;
+    public List<LegoBrick> GreenBricks => productionLineGreen.Bricks;
+    public List<LegoBrick> YellowBricks => productionLineYellow.Bricks;
+    private readonly List<LegoBrick> logistics = new List<LegoBrick>();
+
     public Factory()
     {
-        robot = new Robot(RobotPose.Location, Borders);
+        List<ProductionLine> productionLines = new List<ProductionLine>
+        {
+            productionLineRed,
+            productionLineYellow,
+            productionLineBlue,
+            productionLineGreen,
+            productionLineRecycle,
+            productionLineDelivery
+        };
+
+        robot = new Robot(RobotPose.Location, Borders, productionLines);
     }
     public void RobotBewegen(Direction direction)
     {
         robot.Bewegen(direction);
+        CheckBrickContacts();
     }
     
-    private int tickCount = 0;
-
-    public void MoveBricks()
+    public void LegoBricksBewegen()
     {
-        const int stepsPerDirection = 10;
+        productionLineRed.Bewegen(-1);
+        productionLineBlue.Bewegen(-1);
+        productionLineYellow.Bewegen(1);
+        productionLineGreen.Bewegen(-1);
 
-        bool forward = tickCount < stepsPerDirection;
-
-        tickCount = (tickCount + 1) % (stepsPerDirection * 2);
-
-        MoveBricksAlongLine(productionLineRed, forward, 1);
-        MoveBricksAlongLine(productionLineBlue, forward, -1);
-        MoveBricksAlongLine(productionLineYellow, forward, 1);
-        MoveBricksAlongLine(productionLineGreen, forward, -1);
+        CheckBrickContacts();
     }
 
-    private void MoveBricksAlongLine(
-        ProductionLine line,
-        bool forward,
-        int directionSign)
+    public void Undock()
     {
-        double angleRad = line.ProductionLinePose.Angle * Math.PI / 180.0;
-        double deltaX = Math.Cos(angleRad) * directionSign;                 //Richtung entlang der Produktionslinie
-        double deltaY = Math.Sin(angleRad) * directionSign;
-        double timeScale = Parameters.timerInterval / 50.0;                 //Schrittweite an das Timerintervall anpassen, X = Y wegen 45°
-        double distance = Parameters.step * Math.Sqrt(2) * timeScale;
+        LegoBrick? releasedBrick = robot.Undock();
 
-        deltaX *= distance;
-        deltaY *= distance;
+        if (releasedBrick == null)
+            return;
 
-        if (!forward)                                                       //Nach 30 Ticks die Bewegungsrichtung umkehren
+        if (!logistics.Contains(releasedBrick))
+            logistics.Add(releasedBrick);
+
+        // Den Roboter rückwärts bewegen.
+        for (int i = 0; i < 4; i++)
+            robot.Bewegen(Direction.down);
+    }
+
+    private void CheckBrickContacts()
+    {
+        CheckBrickContacts(productionLineRed);
+        CheckBrickContacts(productionLineYellow);
+        CheckBrickContacts(productionLineBlue);
+        CheckBrickContacts(productionLineGreen);
+        CheckBrickContacts(productionLineRecycle);
+
+        // Abgesetzte Steine können erneut aufgenommen werden.
+        foreach (LegoBrick brick in new List<LegoBrick>(logistics))
         {
-            deltaX = -deltaX;
-            deltaY = -deltaY;
+            bool wasDocked = brick.Gedockt;
+
+            robot.Kontakt(brick);
+
+            // Wurde dieser Stein gerade erneut aufgenommen?
+            if (!wasDocked && brick.Gedockt)
+                logistics.Remove(brick);
         }
+    }
 
-        // Alle vier Steine dieser Produktionslinie bewegen
-        foreach (LegoBrick brick in line.Bricks)
+    private void CheckBrickContacts(ProductionLine line)
+    {
+        // Kopie erstellen, weil wir die ursprüngliche Liste
+        // beim erfolgreichen Aufnehmen verändern können.
+        foreach (LegoBrick brick in new List<LegoBrick>(line.Bricks))
         {
-            brick.Bewegen(deltaX, deltaY);
+            bool wasDocked = brick.Gedockt;
+
+            robot.Kontakt(brick);
+
+            // Nur bei einer tatsächlich erfolgreichen Aufnahme entfernen.
+            if (!wasDocked && brick.Gedockt)
+                line.Bricks.Remove(brick);
         }
     }
 }

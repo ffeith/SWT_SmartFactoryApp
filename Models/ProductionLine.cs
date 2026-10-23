@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using static MyAvaloniaApp.Models.ViewParameters;
 using static MyAvaloniaApp.Models.Parameters;
 
@@ -8,10 +9,12 @@ namespace MyAvaloniaApp.Models;
 public class ProductionLine
 {
     public Pose ProductionLinePose { get; }
-
+    public Point Location => ProductionLinePose.Location;
+    public int Angle => ProductionLinePose.Angle;
     private List<LegoBrick> bricks = new List<LegoBrick>();
-
     public List<LegoBrick> Bricks => bricks;
+    private int tickCount = 0;
+    private int stepsPerDirection = 10;
 
     public ProductionLine(Pose pose)
     {
@@ -24,35 +27,78 @@ public class ProductionLine
         CreateBricks(color);
     }
 
+    public ProductionLine(Pose pose, IReadOnlyList<Parameters.LegoColor> colors, bool placeBricksAboveLine)
+    {
+        ProductionLinePose = pose;
+        CreateBricks(colors, placeBricksAboveLine);
+    }
+
     private void CreateBricks(Parameters.LegoColor color)
     {
-        const double productionLineWidth = 100;
-        const double productionLineHeight = 25;
+        Parameters.LegoColor[] colors =
+            new Parameters.LegoColor[Parameters.bricksPerLine];
+
+        for (int i = 0; i < colors.Length; i++)
+        {
+            colors[i] = color;
+        }
+
+        CreateBricks(colors, false);
+    }
+
+    private void CreateBricks(IReadOnlyList<Parameters.LegoColor> colors,bool placeBricksAboveLine)
+    {
+        if (colors.Count != Parameters.bricksPerLine)
+            throw new ArgumentException(
+                $"Expected {Parameters.bricksPerLine} brick colors.");
+
+        double productionLineWidth = ViewParameters.ProductionLineWidth;
+        double productionLineHeight = ViewParameters.ProductionLineHeight;
 
         const double insideOffset = 25;
         const double brickSpacing = 24;
 
         double angleRad = ProductionLinePose.Angle * Math.PI / 180.0;
 
-        double dx = Math.Cos(angleRad);                                     // Richtung entlang der Produktionslinie
+        double dx = Math.Cos(angleRad);
         double dy = Math.Sin(angleRad);
 
-        double lineCenterX = ProductionLinePose.X + productionLineWidth / 2.0;
-        double lineCenterY = ProductionLinePose.Y + productionLineHeight / 2.0;
+        double lineCenterX =
+            ProductionLinePose.X + productionLineWidth / 2.0;
 
-        double factoryCenterX = ViewParameters.Borders.Left + ViewParameters.Borders.Width / 2.0;
-        double factoryCenterY = ViewParameters.Borders.Top + ViewParameters.Borders.Height / 2.0;
+        double lineCenterY =
+            ProductionLinePose.Y + productionLineHeight / 2.0;
 
-        double nx = -dy;                                            // Senkrechte Richtung zur Produktionslinie
+        double nx = -dy;
         double ny = dx;
 
-        double toCenterX = factoryCenterX - lineCenterX;
-        double toCenterY = factoryCenterY - lineCenterY;
-
-        if (nx * toCenterX + ny * toCenterY < 0)                    // Innenseite der Produktionslinie bestimmen
+        if (placeBricksAboveLine)
         {
-            nx = -nx;
-            ny = -ny;
+            // Die Steine sollen auf der oberen Seite der Linie liegen.
+            if (ny > 0)
+            {
+                nx = -nx;
+                ny = -ny;
+            }
+        }
+        else
+        {
+            // Bei den bisherigen Produktionslinien liegen die Steine
+            // auf der zur Fabrikmitte gerichteten Seite.
+            double factoryCenterX =
+                ViewParameters.Borders.Left + ViewParameters.Borders.Width / 2.0;
+
+            double factoryCenterY =
+                ViewParameters.Borders.Top + ViewParameters.Borders.Height / 2.0;
+
+            double toCenterX = factoryCenterX - lineCenterX;
+            double toCenterY = factoryCenterY - lineCenterY;
+
+            if (nx * toCenterX + ny * toCenterY < 0)
+            {
+                nx = -nx;
+                ny = -ny;
+            }
         }
 
         double rowCenterX = lineCenterX + insideOffset * nx;
@@ -60,17 +106,17 @@ public class ProductionLine
 
         for (int i = 0; i < Parameters.bricksPerLine; i++)
         {
-            double distance = (i - (Parameters.bricksPerLine - 1) / 2.0) * brickSpacing;
+            double distance =
+                (i - (Parameters.bricksPerLine - 1) / 2.0) * brickSpacing;
 
             double brickCenterX = rowCenterX + distance * dx;
             double brickCenterY = rowCenterY + distance * dy;
 
-            LegoSize brickSize = i < 2                                              //Erste zwei Steine gross, letzte zwei klein
-                ? LegoSize.large
-                : LegoSize.small;
+            // Aktuell erstellen wir ausschließlich kleine Steine.
+            LegoSize brickSize = LegoSize.small;
 
-            double displayWidth = brickSize == LegoSize.large ? 20 : 12;
-            const double displayHeight = 12;
+            double displayWidth = ViewParameters.SmallBrickWidth;
+            double displayHeight = ViewParameters.SmallBrickHeight;
 
             double x = brickCenterX - displayWidth / 2.0;
             double y = brickCenterY - displayHeight / 2.0;
@@ -80,7 +126,38 @@ public class ProductionLine
                 (int)Math.Round(y),
                 ProductionLinePose.Angle);
 
-            bricks.Add(new LegoBrick(brickPose, color, brickSize));
+            bricks.Add(new LegoBrick(brickPose, colors[i], brickSize));
+        }
+    }
+
+    public void Bewegen(int directionSign)
+    {
+        bool forward = tickCount < stepsPerDirection;
+
+        tickCount =
+            (tickCount + 1) % (stepsPerDirection * 2);
+
+        double angleRad =
+            ProductionLinePose.Angle * Math.PI / 180.0;
+
+        double deltaX = Math.Cos(angleRad) * directionSign;
+        double deltaY = Math.Sin(angleRad) * directionSign;
+
+        double timeScale = Parameters.timerInterval / 50.0;
+        double distance = Parameters.step * Math.Sqrt(2) * timeScale;
+
+        deltaX *= distance;
+        deltaY *= distance;
+
+        if (!forward)
+        {
+            deltaX = -deltaX;
+            deltaY = -deltaY;
+        }
+
+        foreach (LegoBrick brick in Bricks)
+        {
+            brick.Bewegen(deltaX, deltaY);
         }
     }
 }

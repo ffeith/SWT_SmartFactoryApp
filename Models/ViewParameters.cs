@@ -16,11 +16,24 @@ public struct Pose
 }
 public static class ViewParameters
 {
-    public static Pose RobotPose = new Pose(450, 300, 0);
+    public static Pose RobotPose = new Pose(600, 280, 0);
     public static Pose BrickPose = new Pose(550, 550, 45);
-    public static Pose ProductionLinePoseRed = new Pose(380, 235, -45);
-    public static Pose ProductionLinePoseYellow = new Pose(380, 625, 45);
-    public static Pose ProductionLinePoseBlue = new Pose(767, 235, 45);
-    public static Pose ProductionLinePoseGreen = new Pose(767, 625, -45);
-    public static Rectangle Borders = new Rectangle(360, 183, 447, 474);
+    public static Pose ProductionLinePoseRed =new Pose(410, 380, 90);
+    public static Pose ProductionLinePoseBlue =new Pose(706, 380, 90);
+    public static Pose ProductionLinePoseYellow =new Pose(420, 570, 0);
+    public static Pose ProductionLinePoseGreen =new Pose(696, 570, 0);
+    public static Pose ProductionLinePoseRecycle =new Pose(558, 425, 0);
+    public static Pose ProductionLinePoseDelivery =new Pose(558, 190, 0);
+    public static Rectangle Borders = new Rectangle(357, 182, 522, 524);
+    public const int RobotWidth = 38;
+    public const int RobotHeight = 80;
+    public const int ButtonWidth = 65;
+    public const int ButtonHeight = 30;
+    public const int FontSize = 14;
+    public const int ProductionLineWidth = 120;
+    public const int ProductionLineHeight = 36;
+    public const int SmallBrickWidth = 12;
+    public const int BigBrickWidth = 20;
+    public const int SmallBrickHeight = 12;
+    public const int BigBrickHeight = 12;
 }
