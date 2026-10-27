@@ -30,9 +30,21 @@ public partial class MainViewModel : ViewModelBase
     public ProductionLine ProductionLineDelivery => factory.ProductionLineDelivery;
     public double ProductionLineWidth => ViewParameters.ProductionLineWidth;
     public double ProductionLineHeight => ViewParameters.ProductionLineHeight;
+    public double RecycleLineWidth => ViewParameters.RecycleLineWidth;
+    public double RecycleLineHeight => ViewParameters.RecycleLineHeight;
+    public double DeliveryLineWidth => ViewParameters.DeliveryLineWidth;
+    public double DeliveryLineHeight => ViewParameters.DeliveryLineHeight;
     public double RobotWidth => ViewParameters.RobotWidth;
     public double RobotHeight => ViewParameters.RobotHeight;
     public List<LegoBricksViewModel> BricksView { get; } = new List<LegoBricksViewModel>();
+    public double CustomerArrowX => factory.CustomerArrowX;
+    public double CustomerArrowY => factory.CustomerArrowY;
+    public double RecyclingArrowX => factory.RecyclingArrowX;
+    public double RecyclingArrowY => factory.RecyclingArrowY;
+    public double CustomerArrowWidth => ViewParameters.CustomerArrowWidth;
+    public double CustomerArrowHeight => ViewParameters.CustomerArrowHeight;
+    public double RecyclingArrowWidth => ViewParameters.RecyclingArrowWidth;
+    public double RecyclingArrowHeight => ViewParameters.RecyclingArrowHeight;
 
     public MainViewModel()
     {

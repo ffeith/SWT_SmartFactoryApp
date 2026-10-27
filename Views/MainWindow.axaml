@@ -92,7 +92,7 @@
                 <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineGreen.jpeg" />
             </Rectangle.Fill>
         </Rectangle>
-        <Rectangle x:Name="ProductionLineRecycle" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineRecycle.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineRecycle.ProductionLinePose.Y}">
+        <Rectangle x:Name="ProductionLineRecycle" Width="{Binding RecycleLineWidth}" Height="{Binding RecycleLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineRecycle.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineRecycle.ProductionLinePose.Y}">
             <Rectangle.RenderTransform>
                 <RotateTransform Angle="{Binding ProductionLineRecycle.ProductionLinePose.Angle}" />
             </Rectangle.RenderTransform>
@@ -100,13 +100,23 @@
                 <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineRecycle.png" />
             </Rectangle.Fill>
         </Rectangle>
-        <Rectangle x:Name="ProductionLineDelivery" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineDelivery.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineDelivery.ProductionLinePose.Y}">
+        <Rectangle x:Name="ProductionLineDelivery" Width="{Binding DeliveryLineWidth}" Height="{Binding DeliveryLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineDelivery.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineDelivery.ProductionLinePose.Y}">
             <Rectangle.RenderTransform>
                 <RotateTransform Angle="{Binding ProductionLineDelivery.ProductionLinePose.Angle}" />
             </Rectangle.RenderTransform>
             <Rectangle.Fill>
                 <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineDelivery.png" />
             </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle x:Name="CustomerArrow" Width="{Binding CustomerArrowWidth}" Height="{Binding CustomerArrowHeight}" Stroke="Black" Canvas.Left="{Binding CustomerArrowX}" Canvas.Top="{Binding CustomerArrowY}">
+            <Rectangle.Fill>
+                <ImageBrush Source="avares://MyAvaloniaApp/Assets/CustomerArrow.png" />
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle x:Name="RecyclingArrow" Width="{Binding RecyclingArrowWidth}" Height="{Binding RecyclingArrowHeight}" Stroke="Black" Canvas.Left="{Binding RecyclingArrowX}" Canvas.Top="{Binding RecyclingArrowY}">
+        <Rectangle.Fill>
+            <ImageBrush Source="avares://MyAvaloniaApp/Assets/RecyclingArrow.png"/>
+        </Rectangle.Fill>
         </Rectangle>
         <Rectangle x:Name="brickRed1" Width="{Binding BricksView[0].Width}" Height="{Binding BricksView[0].Height}" Fill="Red" Stroke="Black" Canvas.Left="{Binding BricksView[0].X}" Canvas.Top="{Binding BricksView[0].Y}">
             <Rectangle.RenderTransform>
