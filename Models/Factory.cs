@@ -67,7 +67,10 @@ public class Factory
     public List<LegoBrick> GreenBricks => productionLineGreen.Bricks;
     public List<LegoBrick> YellowBricks => productionLineYellow.Bricks;
     private readonly List<LegoBrick> logistics = new List<LegoBrick>();
-
+    public double CustomerArrowX => ViewParameters.CustomerArrowPose.X;
+    public double CustomerArrowY => ViewParameters.CustomerArrowPose.Y;
+    public double RecyclingArrowX => ViewParameters.RecyclingArrowPose.X;
+    public double RecyclingArrowY => ViewParameters.RecyclingArrowPose.Y;
     public Factory()
     {
         List<ProductionLine> productionLines = new List<ProductionLine>
