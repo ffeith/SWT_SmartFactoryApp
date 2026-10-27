@@ -188,6 +188,8 @@
                 <RotateTransform Angle="{Binding BricksView[15].Angle}" />
             </Rectangle.RenderTransform>
         </Rectangle>
+
+        <!--
         <Rectangle
             x:Name="brickRecycle1"
             Width="{Binding BricksView[16].Width}"
@@ -239,6 +241,8 @@
                 <RotateTransform Angle="{Binding BricksView[19].Angle}" />
             </Rectangle.RenderTransform>
         </Rectangle>
+        -->
+
         <Rectangle x:Name="robotRectangle" Width="{Binding RobotWidth}" Height="{Binding RobotHeight}" Stroke="Black" Canvas.Left="{Binding RobotX}" Canvas.Top="{Binding RobotY}" >
             <Rectangle.Fill>
                 <ImageBrush Source="avares://MyAvaloniaApp/Assets/robotV3.png" />
