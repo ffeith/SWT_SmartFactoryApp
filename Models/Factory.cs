@@ -24,7 +24,8 @@ public class Factory
     private ProductionLine productionLineYellow = new ProductionLine(ProductionLinePoseYellow, Parameters.LegoColor.yellow);
     private ProductionLine productionLineBlue = new ProductionLine(ProductionLinePoseBlue, Parameters.LegoColor.blue);
     private ProductionLine productionLineGreen = new ProductionLine(ProductionLinePoseGreen, Parameters.LegoColor.green);
-    private ProductionLine productionLineRecycle =
+    private ProductionLine productionLineRecycle = new ProductionLine(ProductionLinePoseRecycle);
+    /*private ProductionLine productionLineRecycle =
     new ProductionLine(
         ProductionLinePoseRecycle,
         new[]
@@ -34,7 +35,8 @@ public class Factory
             Parameters.LegoColor.green,
             Parameters.LegoColor.blue
         },
-        true);
+        true);*/
+
     private ProductionLine productionLineDelivery = new ProductionLine(ProductionLinePoseDelivery);
     public ProductionLine ProductionLineRed => productionLineRed;
     public ProductionLine ProductionLineYellow => productionLineYellow;
