@@ -60,9 +60,67 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
+    private int redDelivered;
+    public int RedDelivered
+    {
+        get => redDelivered;
+        private set
+        {
+            if (redDelivered == value)
+                return;
+
+            redDelivered = value;
+            OnPropertyChanged(nameof(RedDelivered));
+        }
+    }
+
+    private int blueDelivered;
+    public int BlueDelivered
+    {
+        get => blueDelivered;
+        private set
+        {
+            if (blueDelivered == value)
+                return;
+
+            blueDelivered = value;
+            OnPropertyChanged(nameof(BlueDelivered));
+        }
+    }
+
+    private int greenDelivered;
+    public int GreenDelivered
+    {
+        get => greenDelivered;
+        private set
+        {
+            if (greenDelivered == value)
+                return;
+
+            greenDelivered = value;
+            OnPropertyChanged(nameof(GreenDelivered));
+        }
+    }
+
+    private int yellowDelivered;
+    public int YellowDelivered
+    {
+        get => yellowDelivered;
+        private set
+        {
+            if (yellowDelivered == value)
+                return;
+
+            yellowDelivered = value;
+            OnPropertyChanged(nameof(YellowDelivered));
+        }
+    }
+
     public MainViewModel()
     {
         factory = new Factory();
+        factory.BrickDelivered += HandleBrickDelivered;
+        factory.TransportMessage += HandleTransportMessage;
 
         foreach (var brick in factory.ProductionLineRed.Bricks)
             BricksView.Add(new LegoBricksViewModel(brick));
@@ -264,17 +322,44 @@ public partial class MainViewModel : ViewModelBase
         UndockInfo = result switch
         {
             Parameters.UndockResult.Success =>
-                "Stein abgesetzt. Transport gestartet.",
+                "Erfolgreich abgesetzt. Transport gestartet.",
 
             Parameters.UndockResult.NoBrick =>
-                "Es ist kein Stein angedockt.",
+                "Kein Stein angedockt. Es gibt nichts abzusetzen.",
 
             Parameters.UndockResult.NotOnDeliveryLine =>
                 "Undocken ist nur auf der Delivery Line möglich.",
 
-            _ => "Unbekanntes Ergebnis beim Undocken."
+            _ => "Unbekannter Fehler beim Undocken."
         };
         NotifyRobotPoseChanged();
         NotifyLegoBricksPoseChange();
+    }
+
+    private void HandleBrickDelivered(Parameters.LegoColor color)
+    {
+        switch (color)
+        {
+            case Parameters.LegoColor.red:
+                RedDelivered++;
+                break;
+
+            case Parameters.LegoColor.blue:
+                BlueDelivered++;
+                break;
+
+            case Parameters.LegoColor.green:
+                GreenDelivered++;
+                break;
+
+            case Parameters.LegoColor.yellow:
+                YellowDelivered++;
+                break;
+        }
+    }
+
+    private void HandleTransportMessage(string message)
+    {
+        UndockInfo = message;
     }
 }

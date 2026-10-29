@@ -14,6 +14,7 @@ public class Beweger
     private Beweger? dockobjekt;
     private double dockWinkelOffset;
     private readonly IReadOnlyList<ProductionLine> productionLines;
+    public Beweger? Dockobjekt => dockobjekt;
 
     public Point Location                               //lange Syntax
     {
