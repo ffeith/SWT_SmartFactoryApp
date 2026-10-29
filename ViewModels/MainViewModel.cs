@@ -46,6 +46,20 @@ public partial class MainViewModel : ViewModelBase
     public double RecyclingArrowWidth => ViewParameters.RecyclingArrowWidth;
     public double RecyclingArrowHeight => ViewParameters.RecyclingArrowHeight;
 
+    private string undockInfo = string.Empty;
+    public string UndockInfo
+    {
+        get => undockInfo;
+        private set
+        {
+            if (undockInfo == value)
+                return;
+
+            undockInfo = value;
+            OnPropertyChanged(nameof(UndockInfo));
+        }
+    }
+
     public MainViewModel()
     {
         factory = new Factory();
@@ -245,7 +259,21 @@ public partial class MainViewModel : ViewModelBase
 
     public void Undock()
     {
-        factory.Undock();
+        Parameters.UndockResult result = factory.Undock();
+
+        UndockInfo = result switch
+        {
+            Parameters.UndockResult.Success =>
+                "Stein abgesetzt. Transport gestartet.",
+
+            Parameters.UndockResult.NoBrick =>
+                "Es ist kein Stein angedockt.",
+
+            Parameters.UndockResult.NotOnDeliveryLine =>
+                "Undocken ist nur auf der Delivery Line möglich.",
+
+            _ => "Unbekanntes Ergebnis beim Undocken."
+        };
         NotifyRobotPoseChanged();
         NotifyLegoBricksPoseChange();
     }

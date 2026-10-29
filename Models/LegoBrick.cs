@@ -78,4 +78,50 @@ public class LegoBrick : Beweger
 
         base.Bewegen(deltaX, deltaY);
     }
+
+    public void ZumKunden()
+    {
+        Status = Parameters.BrickStatus.ToCustomer;
+    }
+
+    public void ZumRecycling()
+    {
+        Status = Parameters.BrickStatus.ToRecycle;
+    }
+
+    public bool VersatzIstNull => versatz == 0;
+
+    public void BewegenZumKunden()
+    {
+        if (Status == Parameters.BrickStatus.ToCustomer)
+            base.Bewegen(Parameters.Direction.right);
+    }
+
+    public void BewegenZumRecycling()
+    {
+        if (Status == Parameters.BrickStatus.ToRecycle)
+            base.Bewegen(Parameters.Direction.left);
+    }
+
+    public void ZurueckZurProduktionslinie()
+    {
+        base.Bewegen(
+            LegoPose.X - Location.X,
+            LegoPose.Y - Location.Y);
+
+        Angle = LegoPose.Angle;
+        RecyclePlatz = -1;
+        Status = Parameters.BrickStatus.Moving;
+    }
+
+    public void AufRecyclePlatz(Pose pose, int platz)
+    {
+        base.Bewegen(
+            pose.X - Location.X,
+            pose.Y - Location.Y);
+
+        Angle = pose.Angle;
+        RecyclePlatz = platz;
+        Status = Parameters.BrickStatus.Moving;
+    }
 }

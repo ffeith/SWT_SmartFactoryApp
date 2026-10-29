@@ -455,4 +455,17 @@ public class Beweger
 
         return false;
     }
+
+    public bool AufDeliveryLinie()
+    {
+        Point tcp = Greifpunkt(Location, rotation);
+
+        Rectangle deliveryBounds = new Rectangle(
+            ViewParameters.ProductionLinePoseDelivery.X,
+            ViewParameters.ProductionLinePoseDelivery.Y,
+            ViewParameters.DeliveryLineWidth,
+            ViewParameters.DeliveryLineHeight);
+
+        return deliveryBounds.Contains(tcp);
+    }
 }

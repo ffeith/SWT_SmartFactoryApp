@@ -56,6 +56,12 @@
                 IsChecked="{Binding IsContinuousMovementSelected, Mode=TwoWay}" />
 
         </StackPanel>
+        <TextBlock
+            Text="{Binding UndockInfo}"
+            Width="230"
+            TextWrapping="Wrap"
+            Canvas.Left="970"
+            Canvas.Top="180" />
         <Grid Height="30" Width="200" Canvas.Left="970" Canvas.Top="450">
             <Button x:Name="TimerStart" Content="Start" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Width="96" Click="TimerStart_Click" />
             <Button x:Name="TimerStop" Content="Stop" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Width="96" Click="TimerStop_Click" />
