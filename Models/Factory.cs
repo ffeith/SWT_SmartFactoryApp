@@ -67,7 +67,13 @@ public class Factory
     public List<LegoBrick> GreenBricks => productionLineGreen.Bricks;
     public List<LegoBrick> YellowBricks => productionLineYellow.Bricks;
     private readonly List<LegoBrick> logistics = new List<LegoBrick>();
-
+    public double CustomerArrowX => ViewParameters.CustomerArrowPose.X;
+    public double CustomerArrowY => ViewParameters.CustomerArrowPose.Y;
+    public double RecyclingArrowX => ViewParameters.RecyclingArrowPose.X;
+    public double RecyclingArrowY => ViewParameters.RecyclingArrowPose.Y;
+    private bool naechsterZumRecycling = false;
+    public event Action<Parameters.LegoColor>? BrickDelivered;
+    public event Action<string>? TransportMessage;
     public Factory()
     {
         List<ProductionLine> productionLines = new List<ProductionLine>
@@ -95,22 +101,98 @@ public class Factory
         productionLineYellow.Bewegen(1);
         productionLineGreen.Bewegen(-1);
 
+        int deliveryLeft = ViewParameters.ProductionLinePoseDelivery.X;
+        int deliveryRight = deliveryLeft
+                            + ViewParameters.DeliveryLineWidth;
+
+        foreach (LegoBrick brick in new List<LegoBrick>(logistics))
+        {
+            int brickWidth = brick.Size == Parameters.LegoSize.large
+                ? ViewParameters.BigBrickWidth
+                : ViewParameters.SmallBrickWidth;
+
+            // Erfolgreiche Lieferung: nach rechts zum Kunden.
+            if (brick.Status == Parameters.BrickStatus.ToCustomer)
+            {
+                if (brick.Location.X < deliveryRight)
+                {
+                    brick.BewegenZumKunden();
+                }
+                else if (brick.VersatzIstNull)
+                {
+                    Parameters.LegoColor color = brick.Color;
+
+                    brick.ZurueckZurProduktionslinie();
+                    logistics.Remove(brick);
+
+                    // Erfolgreiche Lieferung an das MainViewModel melden.
+                    BrickDelivered?.Invoke(color);
+
+                    TransportMessage?.Invoke(
+                        $"{Farbname(color)} Stein wurde erfolgreich an den Kunden geliefert.");
+                }
+            }
+
+            // Fehlerhafter Stein: nach links zum Recycling.
+            else if (brick.Status == Parameters.BrickStatus.ToRecycle)
+            {
+                // Erst warten, bis der Stein vollständig links aus
+                // der Delivery Line herausgefahren ist.
+                if (brick.Location.X + brickWidth > deliveryLeft)
+                {
+                    brick.BewegenZumRecycling();
+                }
+                else
+                {
+                    int platz = FreierRecyclePlatz();
+
+                    if (platz >= 0)
+                    {
+                        brick.AufRecyclePlatz(
+                            RecyclePlatzPose(platz),
+                            platz);
+                        TransportMessage?.Invoke($"{Farbname(brick.Color)} Stein wurde zur Reparatur auf Recyclingplatz {platz + 1} abgelegt.");
+                    }
+                }
+            }
+        }
+
         CheckBrickContacts();
     }
 
-    public void Undock()
+    public Parameters.UndockResult Undock()
     {
-        LegoBrick? releasedBrick = robot.Undock();
+        // Zuerst prüfen, ob überhaupt ein Stein angedockt ist.
+        if (robot.Dockobjekt is not LegoBrick)
+            return Parameters.UndockResult.NoBrick;
 
-        if (releasedBrick == null)
-            return;
+        // Erst danach die Position prüfen.
+        if (!robot.AufDeliveryLinie())
+            return Parameters.UndockResult.NotOnDeliveryLine;
 
-        if (!logistics.Contains(releasedBrick))
-            logistics.Add(releasedBrick);
+        LegoBrick? brick = robot.Undock();
 
-        // Den Roboter rückwärts bewegen.
-        for (int i = 0; i < 4; i++)
-            robot.Bewegen(Direction.down);
+        if (brick == null)
+            return Parameters.UndockResult.NoBrick;
+
+        // Vor dem Transport auf 0 Grad drehen.
+        brick.Angle = 0;
+
+        // Transportziel bei jedem erfolgreichen Undocken wechseln.
+        if (naechsterZumRecycling)
+        {
+            brick.ZumRecycling();
+            naechsterZumRecycling = false;
+        }
+        else
+        {
+            brick.ZumKunden();
+            naechsterZumRecycling = true;
+        }
+
+        logistics.Add(brick);
+
+        return Parameters.UndockResult.Success;
     }
 
     private void CheckBrickContacts()
@@ -121,16 +203,15 @@ public class Factory
         CheckBrickContacts(productionLineGreen);
         CheckBrickContacts(productionLineRecycle);
 
-        // Abgesetzte Steine können erneut aufgenommen werden.
         foreach (LegoBrick brick in new List<LegoBrick>(logistics))
         {
-            bool wasDocked = brick.Gedockt;
-
             robot.Kontakt(brick);
 
-            // Wurde dieser Stein gerade erneut aufgenommen?
-            if (!wasDocked && brick.Gedockt)
+            // Ein wieder aufgenommener Stein verlässt die Logistikliste.
+            if (brick.Status == Parameters.BrickStatus.Docked)
+            {
                 logistics.Remove(brick);
+            }
         }
     }
 
@@ -139,14 +220,49 @@ public class Factory
         // Kopie erstellen, weil wir die ursprüngliche Liste
         // beim erfolgreichen Aufnehmen verändern können.
         foreach (LegoBrick brick in new List<LegoBrick>(line.Bricks))
-        {
-            bool wasDocked = brick.Gedockt;
-
             robot.Kontakt(brick);
+    }
 
-            // Nur bei einer tatsächlich erfolgreichen Aufnahme entfernen.
-            if (!wasDocked && brick.Gedockt)
-                line.Bricks.Remove(brick);
+    private int FreierRecyclePlatz()
+    {
+        for (int platz = 0; platz < Parameters.bricksPerLine; platz++)
+        {
+            bool belegt = false;
+
+            foreach (LegoBrick brick in logistics)
+            {
+                if (brick.RecyclePlatz == platz)
+                {
+                    belegt = true;
+                    break;
+                }
+            }
+
+            if (!belegt)
+                return platz;
         }
+
+        return -1;
+    }
+
+    private Pose RecyclePlatzPose(int platz)
+    {
+        int x = ViewParameters.ProductionLinePoseRecycle.X + 25 + platz * 24;
+        int y = ViewParameters.ProductionLinePoseRecycle.Y
+                - ViewParameters.SmallBrickHeight;
+
+        return new Pose(x, y, 0);
+    }
+
+    private static string Farbname(Parameters.LegoColor color)
+    {
+        return color switch
+        {
+            Parameters.LegoColor.red => "Roter",
+            Parameters.LegoColor.blue => "Blauer",
+            Parameters.LegoColor.green => "Grüner",
+            Parameters.LegoColor.yellow => "Gelber",
+            _ => "LEGO"
+        };
     }
 }

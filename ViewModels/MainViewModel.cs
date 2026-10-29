@@ -30,13 +30,97 @@ public partial class MainViewModel : ViewModelBase
     public ProductionLine ProductionLineDelivery => factory.ProductionLineDelivery;
     public double ProductionLineWidth => ViewParameters.ProductionLineWidth;
     public double ProductionLineHeight => ViewParameters.ProductionLineHeight;
+    public double RecycleLineWidth => ViewParameters.RecycleLineWidth;
+    public double RecycleLineHeight => ViewParameters.RecycleLineHeight;
+    public double DeliveryLineWidth => ViewParameters.DeliveryLineWidth;
+    public double DeliveryLineHeight => ViewParameters.DeliveryLineHeight;
     public double RobotWidth => ViewParameters.RobotWidth;
     public double RobotHeight => ViewParameters.RobotHeight;
     public List<LegoBricksViewModel> BricksView { get; } = new List<LegoBricksViewModel>();
+    public double CustomerArrowX => factory.CustomerArrowX;
+    public double CustomerArrowY => factory.CustomerArrowY;
+    public double RecyclingArrowX => factory.RecyclingArrowX;
+    public double RecyclingArrowY => factory.RecyclingArrowY;
+    public double CustomerArrowWidth => ViewParameters.CustomerArrowWidth;
+    public double CustomerArrowHeight => ViewParameters.CustomerArrowHeight;
+    public double RecyclingArrowWidth => ViewParameters.RecyclingArrowWidth;
+    public double RecyclingArrowHeight => ViewParameters.RecyclingArrowHeight;
+
+    private string undockInfo = string.Empty;
+    public string UndockInfo
+    {
+        get => undockInfo;
+        private set
+        {
+            if (undockInfo == value)
+                return;
+
+            undockInfo = value;
+            OnPropertyChanged(nameof(UndockInfo));
+        }
+    }
+
+    private int redDelivered;
+    public int RedDelivered
+    {
+        get => redDelivered;
+        private set
+        {
+            if (redDelivered == value)
+                return;
+
+            redDelivered = value;
+            OnPropertyChanged(nameof(RedDelivered));
+        }
+    }
+
+    private int blueDelivered;
+    public int BlueDelivered
+    {
+        get => blueDelivered;
+        private set
+        {
+            if (blueDelivered == value)
+                return;
+
+            blueDelivered = value;
+            OnPropertyChanged(nameof(BlueDelivered));
+        }
+    }
+
+    private int greenDelivered;
+    public int GreenDelivered
+    {
+        get => greenDelivered;
+        private set
+        {
+            if (greenDelivered == value)
+                return;
+
+            greenDelivered = value;
+            OnPropertyChanged(nameof(GreenDelivered));
+        }
+    }
+
+    private int yellowDelivered;
+    public int YellowDelivered
+    {
+        get => yellowDelivered;
+        private set
+        {
+            if (yellowDelivered == value)
+                return;
+
+            yellowDelivered = value;
+            OnPropertyChanged(nameof(YellowDelivered));
+        }
+    }
 
     public MainViewModel()
     {
         factory = new Factory();
+        factory.BrickDelivered += HandleBrickDelivered;
+        factory.TransportMessage += HandleTransportMessage;
 
         foreach (var brick in factory.ProductionLineRed.Bricks)
             BricksView.Add(new LegoBricksViewModel(brick));
@@ -233,8 +317,49 @@ public partial class MainViewModel : ViewModelBase
 
     public void Undock()
     {
-        factory.Undock();
+        Parameters.UndockResult result = factory.Undock();
+
+        UndockInfo = result switch
+        {
+            Parameters.UndockResult.Success =>
+                "Erfolgreich abgesetzt. Transport gestartet.",
+
+            Parameters.UndockResult.NoBrick =>
+                "Kein Stein angedockt. Es gibt nichts abzusetzen.",
+
+            Parameters.UndockResult.NotOnDeliveryLine =>
+                "Undocken ist nur auf der Delivery Line möglich.",
+
+            _ => "Unbekannter Fehler beim Undocken."
+        };
         NotifyRobotPoseChanged();
         NotifyLegoBricksPoseChange();
+    }
+
+    private void HandleBrickDelivered(Parameters.LegoColor color)
+    {
+        switch (color)
+        {
+            case Parameters.LegoColor.red:
+                RedDelivered++;
+                break;
+
+            case Parameters.LegoColor.blue:
+                BlueDelivered++;
+                break;
+
+            case Parameters.LegoColor.green:
+                GreenDelivered++;
+                break;
+
+            case Parameters.LegoColor.yellow:
+                YellowDelivered++;
+                break;
+        }
+    }
+
+    private void HandleTransportMessage(string message)
+    {
+        UndockInfo = message;
     }
 }

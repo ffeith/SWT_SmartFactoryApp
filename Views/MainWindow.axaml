@@ -56,6 +56,12 @@
                 IsChecked="{Binding IsContinuousMovementSelected, Mode=TwoWay}" />
 
         </StackPanel>
+        <TextBlock
+            Text="{Binding UndockInfo}"
+            Width="230"
+            TextWrapping="Wrap"
+            Canvas.Left="970"
+            Canvas.Top="180" />
         <Grid Height="30" Width="200" Canvas.Left="970" Canvas.Top="450">
             <Button x:Name="TimerStart" Content="Start" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Width="96" Click="TimerStart_Click" />
             <Button x:Name="TimerStop" Content="Stop" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Width="96" Click="TimerStop_Click" />
@@ -92,7 +98,7 @@
                 <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineGreen.jpeg" />
             </Rectangle.Fill>
         </Rectangle>
-        <Rectangle x:Name="ProductionLineRecycle" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineRecycle.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineRecycle.ProductionLinePose.Y}">
+        <Rectangle x:Name="ProductionLineRecycle" Width="{Binding RecycleLineWidth}" Height="{Binding RecycleLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineRecycle.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineRecycle.ProductionLinePose.Y}">
             <Rectangle.RenderTransform>
                 <RotateTransform Angle="{Binding ProductionLineRecycle.ProductionLinePose.Angle}" />
             </Rectangle.RenderTransform>
@@ -100,13 +106,23 @@
                 <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineRecycle.png" />
             </Rectangle.Fill>
         </Rectangle>
-        <Rectangle x:Name="ProductionLineDelivery" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineDelivery.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineDelivery.ProductionLinePose.Y}">
+        <Rectangle x:Name="ProductionLineDelivery" Width="{Binding DeliveryLineWidth}" Height="{Binding DeliveryLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineDelivery.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineDelivery.ProductionLinePose.Y}">
             <Rectangle.RenderTransform>
                 <RotateTransform Angle="{Binding ProductionLineDelivery.ProductionLinePose.Angle}" />
             </Rectangle.RenderTransform>
             <Rectangle.Fill>
                 <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineDelivery.png" />
             </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle x:Name="CustomerArrow" Width="{Binding CustomerArrowWidth}" Height="{Binding CustomerArrowHeight}" Stroke="Black" Canvas.Left="{Binding CustomerArrowX}" Canvas.Top="{Binding CustomerArrowY}">
+            <Rectangle.Fill>
+                <ImageBrush Source="avares://MyAvaloniaApp/Assets/CustomerArrow.png" />
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle x:Name="RecyclingArrow" Width="{Binding RecyclingArrowWidth}" Height="{Binding RecyclingArrowHeight}" Stroke="Black" Canvas.Left="{Binding RecyclingArrowX}" Canvas.Top="{Binding RecyclingArrowY}">
+        <Rectangle.Fill>
+            <ImageBrush Source="avares://MyAvaloniaApp/Assets/RecyclingArrow.png"/>
+        </Rectangle.Fill>
         </Rectangle>
         <Rectangle x:Name="brickRed1" Width="{Binding BricksView[0].Width}" Height="{Binding BricksView[0].Height}" Fill="Red" Stroke="Black" Canvas.Left="{Binding BricksView[0].X}" Canvas.Top="{Binding BricksView[0].Y}">
             <Rectangle.RenderTransform>
@@ -188,6 +204,36 @@
                 <RotateTransform Angle="{Binding BricksView[15].Angle}" />
             </Rectangle.RenderTransform>
         </Rectangle>
+        <StackPanel
+            Canvas.Left="970"
+            Canvas.Top="180"
+            Spacing="4">
+
+            <TextBlock
+                Text="Erfolgreich gelieferte Steine:"
+                FontWeight="Bold" />
+
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Rot:" />
+                <TextBlock Text="{Binding RedDelivered}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Blau:" />
+                <TextBlock Text="{Binding BlueDelivered}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Grün:" />
+                <TextBlock Text="{Binding GreenDelivered}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Gelb:" />
+                <TextBlock Text="{Binding YellowDelivered}" />
+            </StackPanel>
+
+        </StackPanel>
 
         <!--
         <Rectangle

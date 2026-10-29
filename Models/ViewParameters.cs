@@ -32,8 +32,18 @@ public static class ViewParameters
     public const int FontSize = 14;
     public const int ProductionLineWidth = 120;
     public const int ProductionLineHeight = 36;
+    public const int RecycleLineWidth = ProductionLineWidth;
+    public const int RecycleLineHeight = ProductionLineHeight;
+    public const int DeliveryLineWidth = 150;
+    public const int DeliveryLineHeight = 50;
     public const int SmallBrickWidth = 12;
     public const int BigBrickWidth = 20;
     public const int SmallBrickHeight = 12;
     public const int BigBrickHeight = 12;
+    public static Pose CustomerArrowPose = new Pose(714, 190, 0);
+    public static Pose RecyclingArrowPose = new Pose(455, 190, 0);
+    public const double CustomerArrowWidth = 100;
+    public const double CustomerArrowHeight = 50;
+    public const double RecyclingArrowWidth = 100;
+    public const double RecyclingArrowHeight = 50;
 }
