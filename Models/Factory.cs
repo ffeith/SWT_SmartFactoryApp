@@ -127,12 +127,12 @@ public class Factory
         // Abgesetzte Steine können erneut aufgenommen werden.
         foreach (LegoBrick brick in new List<LegoBrick>(logistics))
         {
-            bool wasDocked = brick.Gedockt;
+            bool wasDocked = brick.Status == BrickStatus.Docked;
 
             robot.Kontakt(brick);
 
             // Wurde dieser Stein gerade erneut aufgenommen?
-            if (!wasDocked && brick.Gedockt)
+            if (!wasDocked && brick.Status == BrickStatus.Docked)
                 logistics.Remove(brick);
         }
     }
@@ -143,12 +143,12 @@ public class Factory
         // beim erfolgreichen Aufnehmen verändern können.
         foreach (LegoBrick brick in new List<LegoBrick>(line.Bricks))
         {
-            bool wasDocked = brick.Gedockt;
+            bool wasDocked = brick.Status == BrickStatus.Docked;
 
             robot.Kontakt(brick);
 
             // Nur bei einer tatsächlich erfolgreichen Aufnahme entfernen.
-            if (!wasDocked && brick.Gedockt)
+            if (!wasDocked && brick.Status == BrickStatus.Docked)
                 line.Bricks.Remove(brick);
         }
     }
