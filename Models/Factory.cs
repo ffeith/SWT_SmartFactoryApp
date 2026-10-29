@@ -72,6 +72,8 @@ public class Factory
     public double RecyclingArrowX => ViewParameters.RecyclingArrowPose.X;
     public double RecyclingArrowY => ViewParameters.RecyclingArrowPose.Y;
     private bool naechsterZumRecycling = false;
+    public event Action<Parameters.LegoColor>? BrickDelivered;
+    public event Action<string>? TransportMessage;
     public Factory()
     {
         List<ProductionLine> productionLines = new List<ProductionLine>
@@ -118,8 +120,16 @@ public class Factory
                 }
                 else if (brick.VersatzIstNull)
                 {
+                    Parameters.LegoColor color = brick.Color;
+
                     brick.ZurueckZurProduktionslinie();
                     logistics.Remove(brick);
+
+                    // Erfolgreiche Lieferung an das MainViewModel melden.
+                    BrickDelivered?.Invoke(color);
+
+                    TransportMessage?.Invoke(
+                        $"{Farbname(color)} Stein wurde erfolgreich an den Kunden geliefert.");
                 }
             }
 
@@ -141,6 +151,7 @@ public class Factory
                         brick.AufRecyclePlatz(
                             RecyclePlatzPose(platz),
                             platz);
+                        TransportMessage?.Invoke($"{Farbname(brick.Color)} Stein wurde zur Reparatur auf Recyclingplatz {platz + 1} abgelegt.");
                     }
                 }
             }
@@ -151,7 +162,11 @@ public class Factory
 
     public Parameters.UndockResult Undock()
     {
-        // Steine dürfen nur auf der Delivery Line abgesetzt werden.
+        // Zuerst prüfen, ob überhaupt ein Stein angedockt ist.
+        if (robot.Dockobjekt is not LegoBrick)
+            return Parameters.UndockResult.NoBrick;
+
+        // Erst danach die Position prüfen.
         if (!robot.AufDeliveryLinie())
             return Parameters.UndockResult.NotOnDeliveryLine;
 
@@ -160,9 +175,10 @@ public class Factory
         if (brick == null)
             return Parameters.UndockResult.NoBrick;
 
+        // Vor dem Transport auf 0 Grad drehen.
         brick.Angle = 0;
 
-        // Transportziel abwechselnd festlegen.
+        // Transportziel bei jedem erfolgreichen Undocken wechseln.
         if (naechsterZumRecycling)
         {
             brick.ZumRecycling();
@@ -176,13 +192,8 @@ public class Factory
 
         logistics.Add(brick);
 
-        // Den Roboter rückwärts bewegen.
-        for (int i = 0; i < 4; i++)
-            robot.Bewegen(Direction.down);
-
         return Parameters.UndockResult.Success;
     }
-    
 
     private void CheckBrickContacts()
     {
@@ -241,5 +252,17 @@ public class Factory
                 - ViewParameters.SmallBrickHeight;
 
         return new Pose(x, y, 0);
+    }
+
+    private static string Farbname(Parameters.LegoColor color)
+    {
+        return color switch
+        {
+            Parameters.LegoColor.red => "Roter",
+            Parameters.LegoColor.blue => "Blauer",
+            Parameters.LegoColor.green => "Grüner",
+            Parameters.LegoColor.yellow => "Gelber",
+            _ => "LEGO"
+        };
     }
 }

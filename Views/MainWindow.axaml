@@ -204,6 +204,36 @@
                 <RotateTransform Angle="{Binding BricksView[15].Angle}" />
             </Rectangle.RenderTransform>
         </Rectangle>
+        <StackPanel
+            Canvas.Left="970"
+            Canvas.Top="180"
+            Spacing="4">
+
+            <TextBlock
+                Text="Erfolgreich gelieferte Steine:"
+                FontWeight="Bold" />
+
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Rot:" />
+                <TextBlock Text="{Binding RedDelivered}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Blau:" />
+                <TextBlock Text="{Binding BlueDelivered}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Grün:" />
+                <TextBlock Text="{Binding GreenDelivered}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Gelb:" />
+                <TextBlock Text="{Binding YellowDelivered}" />
+            </StackPanel>
+
+        </StackPanel>
 
         <!--
         <Rectangle
