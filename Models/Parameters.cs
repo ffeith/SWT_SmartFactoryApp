@@ -2,6 +2,22 @@ namespace MyAvaloniaApp.Models;
 
 public class Parameters
 {
+
+        public enum BrickStatus
+    {
+        Moving,
+        Docked,
+        ToCustomer,
+        ToRecycle
+    }
+
+    public enum UndockResult
+    {
+        Success,
+        NoBrick,
+        NotOnDeliveryLine
+    }
+    
     public enum Direction
     {
         stop = 0,
@@ -25,6 +41,7 @@ public class Parameters
         small = 0,
         large = 1,
     }
+
     public const int step = 3;
     public const int turnAngle = 3;
     public const int bricksPerLine = 4;

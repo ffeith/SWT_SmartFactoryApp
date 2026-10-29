@@ -226,7 +226,7 @@ public class Beweger
     }
     public bool Kontakt(Beweger objekt)
     {
-        if (objekt is not LegoBrick brick)
+        if (objekt is not LegoBrick brick || brick.Status != Parameters.BrickStatus.Moving)
             return false;
 
         Point tcp = Greifpunkt(Location, rotation);
@@ -249,10 +249,10 @@ public class Beweger
             Math.Abs(tcp.X - brickCenter.X) <= 10
             && Math.Abs(tcp.Y - brickCenter.Y) <= 10;
 
-        if (proximity && dockobjekt == null && !brick.Gedockt)
+        if (proximity && dockobjekt == null)
         {
             dockWinkelOffset = brick.Angle - Rotation;
-            brick.Gedockt = true;
+            brick.Andocken();;
             dockobjekt = brick;
             DockobjektNachziehen();
         }
@@ -264,7 +264,7 @@ public class Beweger
     {
         if (dockobjekt is not LegoBrick brick)
             return null;
-        brick.Gedockt = false;
+        brick.Status = Parameters.BrickStatus.Moving;
         dockobjekt = null;
         dockWinkelOffset = 0;
         return brick;
