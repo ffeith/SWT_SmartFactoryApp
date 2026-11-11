@@ -206,8 +206,8 @@
         </Rectangle>
         <StackPanel
             Canvas.Left="970"
-            Canvas.Top="180"
-            Spacing="4">
+            Canvas.Top="220"
+            Spacing="6">
 
             <TextBlock
                 Text="Erfolgreich gelieferte Steine:"
