@@ -1,78 +1,80 @@
 # SmartFactory
 
-SmartFactory ist eine Desktopanwendung zur Simulation einer automatisierten Fabrik. Die Anwendung bildet zentrale Abläufe einer kleinen Produktions- und Logistikumgebung ab. Dazu gehören Produktionslinien, ein steuerbarer Roboter, LEGO-Steine unterschiedlicher Farben, Kundenaufträge sowie Transport- und Recyclingprozesse.
+[English](README.md) | [Deutsch](README.de.md)
 
-Das Projekt entstand im Rahmen des Moduls **Softwaretechnik** an der TH Köln. Die Entwicklung erfolgte in **fünf aufeinander aufbauenden Laboren**, die im Verlauf des Moduls Woche für Woche bearbeitet wurden. Mit jedem Labor wurde die Anwendung schrittweise erweitert. So entwickelte sich aus einer grundlegenden Fabriksimulation eine zunehmend umfangreiche Anwendung, in der die einzelnen Komponenten zusammenarbeiten.
+SmartFactory is a desktop application that simulates an automated factory. It models key processes in a small production and logistics environment, including production lines, a controllable robot, LEGO bricks in different colors, customer orders, transportation, and recycling.
 
-## Wichtiger Hinweis zur Darstellung
+The project was developed as part of the **Software Engineering** module at **TH Köln**. Development took place over **five consecutive laboratory assignments**, completed week by week throughout the module. Each lab extended the application step by step. The result is a factory simulation in which the individual components work together as part of a larger system.
 
-> **Die Anwendung muss im Vollbildmodus verwendet werden.**
+## Important: Use the application in full-screen mode
+
+> **The application must be used in full-screen mode.**
 >
-> Die grafische Oberfläche wurde mit festen Pixelkoordinaten für die Darstellung im Vollbild entworfen. Das beim Programmstart geöffnete Standardfenster ist kleiner als die dafür vorgesehene Fläche. Wird die Anwendung nicht im Vollbild ausgeführt, können Bedienelemente und Fabrikobjekte außerhalb des sichtbaren Bereichs liegen oder falsch positioniert erscheinen.
+> The graphical user interface was designed using fixed pixel coordinates for a full-screen layout. The standard window displayed when the application starts is smaller than the intended workspace. When the application is not running in full-screen mode, controls and factory objects may appear outside the visible area or may be positioned incorrectly.
 >
-> Aktiviere deshalb vor der Bedienung den Vollbildmodus.
+> Switch to full-screen mode before using the application.
 
-## Projektumfang
+## Project features
 
-Die SmartFactory-Simulation umfasst die folgenden Bereiche:
+The SmartFactory simulation covers the following areas:
 
-- **Produktionslinien:** Steine werden auf mehreren Produktionslinien erzeugt und innerhalb der Fabrik bewegt.
-- **Robotersteuerung:** Ein Roboter kann über die Benutzeroberfläche gesteuert werden. Er bewegt sich durch die Fabrik und kann Steine aufnehmen und absetzen.
-- **Kundenaufträge:** Aufträge beschreiben, welche Steine an einen Kunden geliefert werden sollen.
-- **Logistikplanung:** Die Logistik koordiniert die benötigten Steine und unterstützt die Auswahl der nächsten Transportaufgabe.
-- **Lieferung und Recycling:** Steine werden zum Kunden transportiert oder dem Recycling zugeführt. Die Fabrik verwaltet die zugehörigen Abläufe.
-- **Grafische Simulation:** Positionen, Bewegungen und Zustände der Fabrikobjekte werden in einer Avalonia-Benutzeroberfläche dargestellt.
+- **Production lines:** Bricks are created on several production lines and move within the factory.
+- **Robot control:** A robot can be controlled through the user interface. It moves around the factory and can pick up and release bricks.
+- **Customer orders:** Orders specify which bricks need to be delivered to a customer.
+- **Logistics planning:** The logistics component coordinates the required bricks and helps determine the next transportation task.
+- **Delivery and recycling:** Bricks are transported to the customer or sent to recycling. The factory coordinates the related processes.
+- **Graphical simulation:** The Avalonia user interface displays the positions, movements, and states of factory objects.
 
-## Architektur
+## Architecture
 
-Die Anwendung ist objektorientiert aufgebaut. Die Klassen sind nach fachlichen Aufgaben aufgeteilt und orientieren sich an der im Labor vorgegebenen Softwarearchitektur.
+The application follows an object-oriented design. Classes are organized by responsibility and are based on the software architecture provided for the laboratory assignments.
 
-| Komponente | Verantwortung |
+| Component | Responsibility |
 |---|---|
-| `MainWindow` | Darstellung der grafischen Oberfläche und Weiterleitung von Benutzereingaben |
-| `MainViewModel` | Verbindung zwischen Oberfläche und Anwendungslogik sowie Bereitstellung der angezeigten Daten |
-| `Factory` | Koordination der Produktionslinien, des Roboters und der Fabrikabläufe |
-| `Logistics` | Verwaltung von Kundenaufträgen, Lieferfortschritt und Logistikplanung |
-| `ProductionLine` | Verwaltung und Bewegung der Steine einer Produktionslinie |
-| `Robot` | Steuerung des Roboters innerhalb der Fabrik |
-| `LegoBrick` | Zustand, Eigenschaften und Bewegungsverhalten eines Steins |
-| `Beweger` | Gemeinsame Bewegungs-, Rotations-, Kollisions- und Dockingfunktionen |
-| `Pose` | Speicherung von Position und Ausrichtung eines Objekts |
-| `Parameters` und `ViewParameters` | Zentrale Anwendungswerte sowie geometrische und grafische Einstellungen |
+| `MainWindow` | Displays the graphical user interface and forwards user input. |
+| `MainViewModel` | Connects the user interface to the application logic and provides data for display. |
+| `Factory` | Coordinates production lines, the robot, and factory processes. |
+| `Logistics` | Manages customer orders, delivery progress, and logistics planning. |
+| `ProductionLine` | Manages and moves the bricks on a production line. |
+| `Robot` | Controls the robot within the factory. |
+| `LegoBrick` | Represents a brick, including its state, properties, and movement behavior. |
+| `Beweger` | Provides shared movement, rotation, collision detection, and docking functionality. |
+| `Pose` | Stores an object's position and orientation. |
+| `Parameters` and `ViewParameters` | Provide application-wide settings as well as geometric and visual parameters. |
 
-Die Benutzeroberfläche basiert auf **Avalonia UI**. Für die Anbindung der Ansichtsmodelle wird das **CommunityToolkit.Mvvm** verwendet.
+The user interface is built with **Avalonia UI**. The **CommunityToolkit.Mvvm** library is used to connect view models and views.
 
-## Voraussetzungen
+## Requirements
 
-Für das Bauen und Ausführen des Projekts werden benötigt:
+To build and run the project, you need:
 
 - .NET 10 SDK
-- Eine Entwicklungsumgebung mit Unterstützung für C# und .NET, zum Beispiel Visual Studio oder Visual Studio Code
+- A development environment that supports C# and .NET, such as Visual Studio or Visual Studio Code
 
-## Projekt ausführen
+## Run the project
 
-Repository klonen:
+Clone the repository:
 
 ```bash
 git clone https://github.com/ffeith/SWT_SmartFactoryApp.git
 cd SWT_SmartFactoryApp
 ```
 
-Abhängigkeiten wiederherstellen und Anwendung starten:
+Restore dependencies and start the application:
 
 ```bash
 dotnet restore
 dotnet run
 ```
 
-Anschließend die Anwendung in den **Vollbildmodus** versetzen. Beachte dazu unbedingt den Hinweis unter [Wichtiger Hinweis zur Darstellung](#wichtiger-hinweis-zur-darstellung).
+After startup, switch the application to **full-screen mode**. See [Important: Use the application in full-screen mode](#important-use-the-application-in-full-screen-mode) for details.
 
-## Projektkontext
+## Project context
 
-SmartFactory ist ein im Rahmen eines Hochschulmoduls entwickeltes Lehrprojekt. Die fünf Labore bauen inhaltlich aufeinander auf. Die Anwendung wurde dabei schrittweise erweitert, wobei neue Anforderungen in die bestehende objektorientierte Struktur integriert wurden.
+SmartFactory is an educational project developed as part of a university module. The five labs build on one another. The application was expanded incrementally, with new requirements integrated into the existing object-oriented structure throughout the module.
 
 ---
 
-**Hochschule:** TH Köln  
-**Modul:** Softwaretechnik  
-**Projekt:** SmartFactory
+**University:** TH Köln  
+**Module:** Software Engineering  
+**Project:** SmartFactory
