@@ -3,7 +3,9 @@
         xmlns:vm="using:MyAvaloniaApp.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d"
+        d:DesignWidth="800"
+        d:DesignHeight="450"
         x:Class="MyAvaloniaApp.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Icon="/Assets/avalonia-logo.ico"
@@ -12,296 +14,732 @@
         Title="MyAvaloniaApp">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainViewModel />
     </Design.DataContext>
 
-    <Grid> 
-     <Image Source="avares://MyAvaloniaApp/Assets/factory_plan.png" 
-           Stretch="None"/> 
-  
-    <Canvas x:Name="canvasFactory" HorizontalAlignment="Left" Height="600" VerticalAlignment="Top" Width="900" > 
-       
-        <Grid Height="95" Width="200" Canvas.Left="970" Canvas.Top="500"> 
-            <Button x:Name="UpButton" Content="Up" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Top" Width="65" FontSize="14" Click="MoveUp_Click" /> 
-            <Button x:Name="DownButton" Content="Down" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="65" FontSize="14" Click="MoveDown_Click"/> 
-            <Button x:Name="LeftButton" Content="Left" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" Width="65" FontSize="14" Click="MoveLeft_Click" /> 
-            <Button x:Name="RightButton" Content="Right" HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Center" Width="65" FontSize="14" Click="MoveRight_Click" />          
-            <Button x:Name="UpLeftButton" Content="UpL" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Top" Width="65" FontSize="14" Click="MoveUpLeft_Click" />
-            <Button x:Name="UpRightButton" Content="UpR" HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Top" Width="65" FontSize="14" Click="MoveUpRight_Click" />
-            <Button x:Name="DownLeftButton" Content="DownL" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="65" FontSize="14" Click="MoveDownLeft_Click" />
-            <Button x:Name="DownRightButton" Content="DownR" HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="65" FontSize="14" Click="MoveDownRight_Click" />
-            <Button x:Name="StopButton" Content="Stop" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Width="65" FontSize="14" Click="StopButton_Click" />
-        </Grid>
-        <Grid Height="30" Width="200" Canvas.Left="970" Canvas.Top="600">
-            <Button x:Name="TurnLeft" Content="Turn L" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Width="65" Click="TurnLeft_Click" />
-            <Button x:Name="TurnRight" Content="Turn R" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Width="65" Click="TurnRight_Click" />
-            <Button x:Name="TurnToZeroDegrees" Content="0°" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Width="65" Click="TurnToZeroDegrees_Click" />
-        </Grid>
-        <Button x:Name="UndockButton" Content="Undock" Width="150" Canvas.Left="970" Canvas.Top="705" Click="Undock_Click" />
-        <StackPanel
-            Canvas.Left="970"
-            Canvas.Top="630"
-            Spacing="2">
+    <Grid>
 
-            <RadioButton
-                GroupName="RobotMovementMode"
-                Content="Schrittbewegung"
-                IsChecked="{Binding IsStepMovementSelected, Mode=TwoWay}" />
+        <!-- Hintergrundbild -->
+        <Image
+            Source="avares://MyAvaloniaApp/Assets/factory_plan.png"
+            Stretch="None"/>
 
-            <RadioButton
-                GroupName="RobotMovementMode"
-                Content="Kontinuierliche Bewegung"
-                IsChecked="{Binding IsContinuousMovementSelected, Mode=TwoWay}" />
+        <Canvas
+            x:Name="canvasFactory"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Width="900"
+            Height="600">
 
-        </StackPanel>
-        <TextBlock
-            Text="{Binding UndockInfo}"
-            Width="230"
-            TextWrapping="Wrap"
-            Canvas.Left="970"
-            Canvas.Top="180" />
-        <Grid Height="30" Width="200" Canvas.Left="970" Canvas.Top="450">
-            <Button x:Name="TimerStart" Content="Start" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Width="96" Click="TimerStart_Click" />
-            <Button x:Name="TimerStop" Content="Stop" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Width="96" Click="TimerStop_Click" />
-        </Grid>
-        <Rectangle x:Name="ProductionLineRed" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineRed.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineRed.ProductionLinePose.Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding ProductionLineRed.ProductionLinePose.Angle}" />
-            </Rectangle.RenderTransform>
-            <Rectangle.Fill>
-                <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineRed.jpeg" />
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="ProductionLineBlue" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineBlue.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineBlue.ProductionLinePose.Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding ProductionLineBlue.ProductionLinePose.Angle}" />
-            </Rectangle.RenderTransform>
-            <Rectangle.Fill>
-                <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineBlue.jpeg" />
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="ProductionLineYellow" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineYellow.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineYellow.ProductionLinePose.Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding ProductionLineYellow.ProductionLinePose.Angle}" />
-            </Rectangle.RenderTransform>
-            <Rectangle.Fill>
-                <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineYellow.jpeg" />
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="ProductionLineGreen" Width="{Binding ProductionLineWidth}" Height="{Binding ProductionLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineGreen.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineGreen.ProductionLinePose.Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding ProductionLineGreen.ProductionLinePose.Angle}" />
-            </Rectangle.RenderTransform>
-            <Rectangle.Fill>
-                <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineGreen.jpeg" />
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="ProductionLineRecycle" Width="{Binding RecycleLineWidth}" Height="{Binding RecycleLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineRecycle.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineRecycle.ProductionLinePose.Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding ProductionLineRecycle.ProductionLinePose.Angle}" />
-            </Rectangle.RenderTransform>
-            <Rectangle.Fill>
-                <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineRecycle.png" />
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="ProductionLineDelivery" Width="{Binding DeliveryLineWidth}" Height="{Binding DeliveryLineHeight}" Stroke="Black" Canvas.Left="{Binding ProductionLineDelivery.ProductionLinePose.X}" Canvas.Top="{Binding ProductionLineDelivery.ProductionLinePose.Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding ProductionLineDelivery.ProductionLinePose.Angle}" />
-            </Rectangle.RenderTransform>
-            <Rectangle.Fill>
-                <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineDelivery.png" />
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="CustomerArrow" Width="{Binding CustomerArrowWidth}" Height="{Binding CustomerArrowHeight}" Stroke="Black" Canvas.Left="{Binding CustomerArrowX}" Canvas.Top="{Binding CustomerArrowY}">
-            <Rectangle.Fill>
-                <ImageBrush Source="avares://MyAvaloniaApp/Assets/CustomerArrow.png" />
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="RecyclingArrow" Width="{Binding RecyclingArrowWidth}" Height="{Binding RecyclingArrowHeight}" Stroke="Black" Canvas.Left="{Binding RecyclingArrowX}" Canvas.Top="{Binding RecyclingArrowY}">
-        <Rectangle.Fill>
-            <ImageBrush Source="avares://MyAvaloniaApp/Assets/RecyclingArrow.png"/>
-        </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle x:Name="brickRed1" Width="{Binding BricksView[0].Width}" Height="{Binding BricksView[0].Height}" Fill="Red" Stroke="Black" Canvas.Left="{Binding BricksView[0].X}" Canvas.Top="{Binding BricksView[0].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[0].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickRed2" Width="{Binding BricksView[1].Width}" Height="{Binding BricksView[1].Height}" Fill="Red" Stroke="Black" Canvas.Left="{Binding BricksView[1].X}" Canvas.Top="{Binding BricksView[1].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[1].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickRed3" Width="{Binding BricksView[2].Width}" Height="{Binding BricksView[2].Height}" Fill="Red" Stroke="Black" Canvas.Left="{Binding BricksView[2].X}" Canvas.Top="{Binding BricksView[2].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[2].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickRed4" Width="{Binding BricksView[3].Width}" Height="{Binding BricksView[3].Height}" Fill="Red" Stroke="Black" Canvas.Left="{Binding BricksView[3].X}" Canvas.Top="{Binding BricksView[3].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[3].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickYellow1" Width="{Binding BricksView[4].Width}" Height="{Binding BricksView[4].Height}" Fill="Yellow" Stroke="Black" Canvas.Left="{Binding BricksView[4].X}" Canvas.Top="{Binding BricksView[4].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[4].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickYellow2" Width="{Binding BricksView[5].Width}" Height="{Binding BricksView[5].Height}" Fill="Yellow" Stroke="Black" Canvas.Left="{Binding BricksView[5].X}" Canvas.Top="{Binding BricksView[5].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[5].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickYellow3" Width="{Binding BricksView[6].Width}" Height="{Binding BricksView[6].Height}" Fill="Yellow" Stroke="Black" Canvas.Left="{Binding BricksView[6].X}" Canvas.Top="{Binding BricksView[6].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[6].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickYellow4" Width="{Binding BricksView[7].Width}" Height="{Binding BricksView[7].Height}" Fill="Yellow" Stroke="Black" Canvas.Left="{Binding BricksView[7].X}" Canvas.Top="{Binding BricksView[7].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[7].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickBlue1" Width="{Binding BricksView[8].Width}" Height="{Binding BricksView[8].Height}" Fill="Blue" Stroke="Black" Canvas.Left="{Binding BricksView[8].X}" Canvas.Top="{Binding BricksView[8].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[8].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickBlue2" Width="{Binding BricksView[9].Width}" Height="{Binding BricksView[9].Height}" Fill="Blue" Stroke="Black" Canvas.Left="{Binding BricksView[9].X}" Canvas.Top="{Binding BricksView[9].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[9].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickBlue3" Width="{Binding BricksView[10].Width}" Height="{Binding BricksView[10].Height}" Fill="Blue" Stroke="Black" Canvas.Left="{Binding BricksView[10].X}" Canvas.Top="{Binding BricksView[10].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[10].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickBlue4" Width="{Binding BricksView[11].Width}" Height="{Binding BricksView[11].Height}" Fill="Blue" Stroke="Black" Canvas.Left="{Binding BricksView[11].X}" Canvas.Top="{Binding BricksView[11].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[11].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickGreen1" Width="{Binding BricksView[12].Width}" Height="{Binding BricksView[12].Height}" Fill="Green" Stroke="Black" Canvas.Left="{Binding BricksView[12].X}" Canvas.Top="{Binding BricksView[12].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[12].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickGreen2" Width="{Binding BricksView[13].Width}" Height="{Binding BricksView[13].Height}" Fill="Green" Stroke="Black" Canvas.Left="{Binding BricksView[13].X}" Canvas.Top="{Binding BricksView[13].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[13].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickGreen3" Width="{Binding BricksView[14].Width}" Height="{Binding BricksView[14].Height}" Fill="Green" Stroke="Black" Canvas.Left="{Binding BricksView[14].X}" Canvas.Top="{Binding BricksView[14].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[14].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle x:Name="brickGreen4" Width="{Binding BricksView[15].Width}" Height="{Binding BricksView[15].Height}" Fill="Green" Stroke="Black" Canvas.Left="{Binding BricksView[15].X}" Canvas.Top="{Binding BricksView[15].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[15].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <StackPanel
-            Canvas.Left="970"
-            Canvas.Top="220"
-            Spacing="6">
+            <!-- ====================================== -->
+            <!-- AUFTRAG UND LOGISTIK                   -->
+            <!-- ====================================== -->
 
             <TextBlock
-                Text="Erfolgreich gelieferte Steine:"
-                FontWeight="Bold" />
+                Text="{Binding CurrentStepInfo}"
+                Width="230"
+                TextWrapping="Wrap"
+                FontWeight="Bold"
+                Canvas.Left="970"
+                Canvas.Top="155"/>
 
-            <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Rot:" />
-                <TextBlock Text="{Binding RedDelivered}" />
+            <!-- Auftragstabelle -->
+            <StackPanel
+                Canvas.Left="970"
+                Canvas.Top="220"
+                Spacing="6">
+
+                <Grid ColumnDefinitions="70,65,80">
+                    <TextBlock Grid.Column="0"
+                               Text="Color"
+                               FontWeight="Bold"/>
+
+                    <TextBlock Grid.Column="1"
+                               Text="Order"
+                               FontWeight="Bold"/>
+
+                    <TextBlock Grid.Column="2"
+                               Text="Delivered"
+                               FontWeight="Bold"/>
+                </Grid>
+
+                <Grid ColumnDefinitions="70,65,80">
+                    <TextBlock Grid.Column="0" Text="Red"/>
+                    <TextBlock Grid.Column="1" Text="{Binding RedOrder}"/>
+                    <TextBlock Grid.Column="2" Text="{Binding RedDelivered}"/>
+                </Grid>
+
+                <Grid ColumnDefinitions="70,65,80">
+                    <TextBlock Grid.Column="0" Text="Green"/>
+                    <TextBlock Grid.Column="1" Text="{Binding GreenOrder}"/>
+                    <TextBlock Grid.Column="2" Text="{Binding GreenDelivered}"/>
+                </Grid>
+
+                <Grid ColumnDefinitions="70,65,80">
+                    <TextBlock Grid.Column="0" Text="Blue"/>
+                    <TextBlock Grid.Column="1" Text="{Binding BlueOrder}"/>
+                    <TextBlock Grid.Column="2" Text="{Binding BlueDelivered}"/>
+                </Grid>
+
+                <Grid ColumnDefinitions="70,65,80">
+                    <TextBlock Grid.Column="0" Text="Yellow"/>
+                    <TextBlock Grid.Column="1" Text="{Binding YellowOrder}"/>
+                    <TextBlock Grid.Column="2" Text="{Binding YellowDelivered}"/>
+                </Grid>
+
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Blau:" />
-                <TextBlock Text="{Binding BlueDelivered}" />
-            </StackPanel>
+            <!-- Statusmeldungen -->
+            <TextBlock
+                Text="{Binding UndockInfo}"
+                Width="230"
+                TextWrapping="Wrap"
+                Canvas.Left="970"
+                Canvas.Top="350"/>
 
-            <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Grün:" />
-                <TextBlock Text="{Binding GreenDelivered}" />
-            </StackPanel>
+            <!-- ====================================== -->
+            <!-- EINMALIGE AKTIONEN                     -->
+            <!-- ====================================== -->
 
-            <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="Gelb:" />
-                <TextBlock Text="{Binding YellowDelivered}" />
-            </StackPanel>
+            <Grid
+                Width="230"
+                Height="30"
+                Canvas.Left="970"
+                Canvas.Top="390"
+                ColumnDefinitions="111,8,111">
 
-        </StackPanel>
+                <Button
+                    Grid.Column="0"
+                    Width="111"
+                    Height="30"
+                    Content="Setup"
+                    Click="SetupProductionLines_Click"
+                    IsEnabled="{Binding CanSetupProductionLines}"/>
 
-        <!--
-        <Rectangle
-            x:Name="brickRecycle1"
-            Width="{Binding BricksView[16].Width}"
-            Height="{Binding BricksView[16].Height}"
-            Fill="Yellow"
-            Stroke="Black"
-            Canvas.Left="{Binding BricksView[16].X}"
-            Canvas.Top="{Binding BricksView[16].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[16].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
+                <Button
+                    Grid.Column="2"
+                    Width="111"
+                    Height="30"
+                    Content="Order"
+                    Click="Order_Click"
+                    IsEnabled="{Binding CanCreateOrder}"/>
 
-        <Rectangle
-            x:Name="brickRecycle2"
-            Width="{Binding BricksView[17].Width}"
-            Height="{Binding BricksView[17].Height}"
-            Fill="Red"
-            Stroke="Black"
-            Canvas.Left="{Binding BricksView[17].X}"
-            Canvas.Top="{Binding BricksView[17].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[17].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
+            </Grid>
 
-        <Rectangle
-            x:Name="brickRecycle3"
-            Width="{Binding BricksView[18].Width}"
-            Height="{Binding BricksView[18].Height}"
-            Fill="Green"
-            Stroke="Black"
-            Canvas.Left="{Binding BricksView[18].X}"
-            Canvas.Top="{Binding BricksView[18].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[18].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
+            <!-- ====================================== -->
+            <!-- WIEDERKEHRENDE STEUERUNG               -->
+            <!-- ====================================== -->
 
-        <Rectangle
-            x:Name="brickRecycle4"
-            Width="{Binding BricksView[19].Width}"
-            Height="{Binding BricksView[19].Height}"
-            Fill="Blue"
-            Stroke="Black"
-            Canvas.Left="{Binding BricksView[19].X}"
-            Canvas.Top="{Binding BricksView[19].Y}">
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding BricksView[19].Angle}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        -->
+            <Grid
+                Width="230"
+                Height="138"
+                Canvas.Left="970"
+                Canvas.Top="432"
+                ColumnDefinitions="111,8,111"
+                RowDefinitions="30,6,30,6,30,6,30">
 
-        <Rectangle x:Name="robotRectangle" Width="{Binding RobotWidth}" Height="{Binding RobotHeight}" Stroke="Black" Canvas.Left="{Binding RobotX}" Canvas.Top="{Binding RobotY}" >
-            <Rectangle.Fill>
-                <ImageBrush Source="avares://MyAvaloniaApp/Assets/robotV3.png" />
-            </Rectangle.Fill>
-            <Rectangle.RenderTransform>
-                <RotateTransform Angle="{Binding Rotation}" />
-            </Rectangle.RenderTransform>
-        </Rectangle>
-        <TextBox x:Name="PositionTextBoxX" Canvas.Left="100" Canvas.Top="100" Width="20" IsReadOnly="True" Text="{Binding RobotX}" />
-        <TextBox x:Name="PositionTextBoxY" Canvas.Left="100" Canvas.Top="150" Width="20" IsReadOnly="True" Text="{Binding RobotY}" />
-        <TextBox x:Name="RotationTextBox" Canvas.Left="100" Canvas.Top="200" Width="20" IsReadOnly="True" Text="{Binding Rotation}" />
-    </Canvas>
-   
-</Grid>
+                <!-- Start und Stop -->
+                <Button
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Width="111"
+                    Height="30"
+                    Content="Start"
+                    Click="TimerStart_Click"/>
+
+                <Button
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    Width="111"
+                    Height="30"
+                    Content="Stop"
+                    Click="TimerStop_Click"/>
+
+                <!-- Automatische Positionierung -->
+                <Button
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Width="111"
+                    Height="30"
+                    Content="Go To Pickup"
+                    FontSize="10"
+                    Click="GoToLine_Click"/>
+
+                <Button
+                    Grid.Row="2"
+                    Grid.Column="2"
+                    Width="111"
+                    Height="30"
+                    Content="Go To Delivery"
+                    FontSize="10"
+                    Click="GoToDelivery_Click"/>
+
+                <!-- Undock über die gesamte Breite -->
+                <Button
+                    Grid.Row="4"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="3"
+                    Height="30"
+                    HorizontalAlignment="Stretch"
+                    Content="Undock"
+                    Click="Undock_Click"/>
+
+                <!-- Bewegungsmodus -->
+                <RadioButton
+                    Grid.Row="6"
+                    Grid.Column="0"
+                    Width="111"
+                    Height="30"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Content="Move"
+                    GroupName="RobotMovementMode"
+                    IsChecked="{Binding IsContinuousMovementSelected, Mode=TwoWay}"/>
+
+                <RadioButton
+                    Grid.Row="6"
+                    Grid.Column="2"
+                    Width="111"
+                    Height="30"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Content="Step"
+                    GroupName="RobotMovementMode"
+                    IsChecked="{Binding IsStepMovementSelected, Mode=TwoWay}"/>
+
+            </Grid>
+
+            <!-- ====================================== -->
+            <!-- PRODUKTIONSLINIEN                      -->
+            <!-- ====================================== -->
+
+            <Rectangle
+                x:Name="ProductionLineRed"
+                Width="{Binding ProductionLineWidth}"
+                Height="{Binding ProductionLineHeight}"
+                Stroke="Black"
+                Canvas.Left="{Binding ProductionLineRed.ProductionLinePose.X}"
+                Canvas.Top="{Binding ProductionLineRed.ProductionLinePose.Y}">
+
+                <Rectangle.RenderTransform>
+                    <RotateTransform
+                        Angle="{Binding ProductionLineRed.ProductionLinePose.Angle}"/>
+                </Rectangle.RenderTransform>
+
+                <Rectangle.Fill>
+                    <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineRed.jpeg"/>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Rectangle
+                x:Name="ProductionLineBlue"
+                Width="{Binding ProductionLineWidth}"
+                Height="{Binding ProductionLineHeight}"
+                Stroke="Black"
+                Canvas.Left="{Binding ProductionLineBlue.ProductionLinePose.X}"
+                Canvas.Top="{Binding ProductionLineBlue.ProductionLinePose.Y}">
+
+                <Rectangle.RenderTransform>
+                    <RotateTransform
+                        Angle="{Binding ProductionLineBlue.ProductionLinePose.Angle}"/>
+                </Rectangle.RenderTransform>
+
+                <Rectangle.Fill>
+                    <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineBlue.jpeg"/>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Rectangle
+                x:Name="ProductionLineYellow"
+                Width="{Binding ProductionLineWidth}"
+                Height="{Binding ProductionLineHeight}"
+                Stroke="Black"
+                Canvas.Left="{Binding ProductionLineYellow.ProductionLinePose.X}"
+                Canvas.Top="{Binding ProductionLineYellow.ProductionLinePose.Y}">
+
+                <Rectangle.RenderTransform>
+                    <RotateTransform
+                        Angle="{Binding ProductionLineYellow.ProductionLinePose.Angle}"/>
+                </Rectangle.RenderTransform>
+
+                <Rectangle.Fill>
+                    <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineYellow.jpeg"/>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Rectangle
+                x:Name="ProductionLineGreen"
+                Width="{Binding ProductionLineWidth}"
+                Height="{Binding ProductionLineHeight}"
+                Stroke="Black"
+                Canvas.Left="{Binding ProductionLineGreen.ProductionLinePose.X}"
+                Canvas.Top="{Binding ProductionLineGreen.ProductionLinePose.Y}">
+
+                <Rectangle.RenderTransform>
+                    <RotateTransform
+                        Angle="{Binding ProductionLineGreen.ProductionLinePose.Angle}"/>
+                </Rectangle.RenderTransform>
+
+                <Rectangle.Fill>
+                    <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineGreen.jpeg"/>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Rectangle
+                x:Name="ProductionLineRecycle"
+                Width="{Binding RecycleLineWidth}"
+                Height="{Binding RecycleLineHeight}"
+                Stroke="Black"
+                Canvas.Left="{Binding ProductionLineRecycle.ProductionLinePose.X}"
+                Canvas.Top="{Binding ProductionLineRecycle.ProductionLinePose.Y}">
+
+                <Rectangle.RenderTransform>
+                    <RotateTransform
+                        Angle="{Binding ProductionLineRecycle.ProductionLinePose.Angle}"/>
+                </Rectangle.RenderTransform>
+
+                <Rectangle.Fill>
+                    <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineRecycle.png"/>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Rectangle
+                x:Name="ProductionLineDelivery"
+                Width="{Binding DeliveryLineWidth}"
+                Height="{Binding DeliveryLineHeight}"
+                Stroke="Black"
+                Canvas.Left="{Binding ProductionLineDelivery.ProductionLinePose.X}"
+                Canvas.Top="{Binding ProductionLineDelivery.ProductionLinePose.Y}">
+
+                <Rectangle.RenderTransform>
+                    <RotateTransform
+                        Angle="{Binding ProductionLineDelivery.ProductionLinePose.Angle}"/>
+                </Rectangle.RenderTransform>
+
+                <Rectangle.Fill>
+                    <ImageBrush Source="avares://MyAvaloniaApp/Assets/ProductionLineDelivery.png"/>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <!-- ====================================== -->
+            <!-- TRANSPORTPFEILE                        -->
+            <!-- ====================================== -->
+
+            <Rectangle
+                x:Name="CustomerArrow"
+                Width="{Binding CustomerArrowWidth}"
+                Height="{Binding CustomerArrowHeight}"
+                Stroke="Black"
+                Canvas.Left="{Binding CustomerArrowX}"
+                Canvas.Top="{Binding CustomerArrowY}">
+
+                <Rectangle.Fill>
+                    <ImageBrush Source="avares://MyAvaloniaApp/Assets/CustomerArrow.png"/>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Rectangle
+                x:Name="RecyclingArrow"
+                Width="{Binding RecyclingArrowWidth}"
+                Height="{Binding RecyclingArrowHeight}"
+                Stroke="Black"
+                Canvas.Left="{Binding RecyclingArrowX}"
+                Canvas.Top="{Binding RecyclingArrowY}">
+
+                <Rectangle.Fill>
+                    <ImageBrush Source="avares://MyAvaloniaApp/Assets/RecyclingArrow.png"/>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <!-- ====================================== -->
+            <!-- LEGO-BRICKS                            -->
+            <!-- ====================================== -->
+
+            <Rectangle x:Name="brick01"
+                       Width="{Binding BricksView[0].Width}"
+                       Height="{Binding BricksView[0].Height}"
+                       Fill="{Binding BricksView[0].Fill}"
+                       IsVisible="{Binding BricksView[0].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[0].X}"
+                       Canvas.Top="{Binding BricksView[0].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[0].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick02"
+                       Width="{Binding BricksView[1].Width}"
+                       Height="{Binding BricksView[1].Height}"
+                       Fill="{Binding BricksView[1].Fill}"
+                       IsVisible="{Binding BricksView[1].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[1].X}"
+                       Canvas.Top="{Binding BricksView[1].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[1].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick03"
+                       Width="{Binding BricksView[2].Width}"
+                       Height="{Binding BricksView[2].Height}"
+                       Fill="{Binding BricksView[2].Fill}"
+                       IsVisible="{Binding BricksView[2].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[2].X}"
+                       Canvas.Top="{Binding BricksView[2].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[2].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick04"
+                       Width="{Binding BricksView[3].Width}"
+                       Height="{Binding BricksView[3].Height}"
+                       Fill="{Binding BricksView[3].Fill}"
+                       IsVisible="{Binding BricksView[3].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[3].X}"
+                       Canvas.Top="{Binding BricksView[3].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[3].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick05"
+                       Width="{Binding BricksView[4].Width}"
+                       Height="{Binding BricksView[4].Height}"
+                       Fill="{Binding BricksView[4].Fill}"
+                       IsVisible="{Binding BricksView[4].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[4].X}"
+                       Canvas.Top="{Binding BricksView[4].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[4].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick06"
+                       Width="{Binding BricksView[5].Width}"
+                       Height="{Binding BricksView[5].Height}"
+                       Fill="{Binding BricksView[5].Fill}"
+                       IsVisible="{Binding BricksView[5].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[5].X}"
+                       Canvas.Top="{Binding BricksView[5].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[5].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick07"
+                       Width="{Binding BricksView[6].Width}"
+                       Height="{Binding BricksView[6].Height}"
+                       Fill="{Binding BricksView[6].Fill}"
+                       IsVisible="{Binding BricksView[6].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[6].X}"
+                       Canvas.Top="{Binding BricksView[6].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[6].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick08"
+                       Width="{Binding BricksView[7].Width}"
+                       Height="{Binding BricksView[7].Height}"
+                       Fill="{Binding BricksView[7].Fill}"
+                       IsVisible="{Binding BricksView[7].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[7].X}"
+                       Canvas.Top="{Binding BricksView[7].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[7].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick09"
+                       Width="{Binding BricksView[8].Width}"
+                       Height="{Binding BricksView[8].Height}"
+                       Fill="{Binding BricksView[8].Fill}"
+                       IsVisible="{Binding BricksView[8].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[8].X}"
+                       Canvas.Top="{Binding BricksView[8].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[8].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick10"
+                       Width="{Binding BricksView[9].Width}"
+                       Height="{Binding BricksView[9].Height}"
+                       Fill="{Binding BricksView[9].Fill}"
+                       IsVisible="{Binding BricksView[9].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[9].X}"
+                       Canvas.Top="{Binding BricksView[9].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[9].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick11"
+                       Width="{Binding BricksView[10].Width}"
+                       Height="{Binding BricksView[10].Height}"
+                       Fill="{Binding BricksView[10].Fill}"
+                       IsVisible="{Binding BricksView[10].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[10].X}"
+                       Canvas.Top="{Binding BricksView[10].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[10].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick12"
+                       Width="{Binding BricksView[11].Width}"
+                       Height="{Binding BricksView[11].Height}"
+                       Fill="{Binding BricksView[11].Fill}"
+                       IsVisible="{Binding BricksView[11].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[11].X}"
+                       Canvas.Top="{Binding BricksView[11].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[11].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick13"
+                       Width="{Binding BricksView[12].Width}"
+                       Height="{Binding BricksView[12].Height}"
+                       Fill="{Binding BricksView[12].Fill}"
+                       IsVisible="{Binding BricksView[12].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[12].X}"
+                       Canvas.Top="{Binding BricksView[12].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[12].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick14"
+                       Width="{Binding BricksView[13].Width}"
+                       Height="{Binding BricksView[13].Height}"
+                       Fill="{Binding BricksView[13].Fill}"
+                       IsVisible="{Binding BricksView[13].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[13].X}"
+                       Canvas.Top="{Binding BricksView[13].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[13].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick15"
+                       Width="{Binding BricksView[14].Width}"
+                       Height="{Binding BricksView[14].Height}"
+                       Fill="{Binding BricksView[14].Fill}"
+                       IsVisible="{Binding BricksView[14].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[14].X}"
+                       Canvas.Top="{Binding BricksView[14].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[14].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <Rectangle x:Name="brick16"
+                       Width="{Binding BricksView[15].Width}"
+                       Height="{Binding BricksView[15].Height}"
+                       Fill="{Binding BricksView[15].Fill}"
+                       IsVisible="{Binding BricksView[15].IsVisible}"
+                       Stroke="Black"
+                       Canvas.Left="{Binding BricksView[15].X}"
+                       Canvas.Top="{Binding BricksView[15].Y}">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding BricksView[15].Angle}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <!-- ====================================== -->
+            <!-- ROBOT                                  -->
+            <!-- ====================================== -->
+
+            <Rectangle
+                x:Name="robotRectangle"
+                Width="{Binding RobotWidth}"
+                Height="{Binding RobotHeight}"
+                Stroke="Black"
+                Canvas.Left="{Binding RobotX}"
+                Canvas.Top="{Binding RobotY}">
+
+                <Rectangle.Fill>
+                    <ImageBrush Source="avares://MyAvaloniaApp/Assets/robotV3.png"/>
+                </Rectangle.Fill>
+
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="{Binding Rotation}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <!-- ====================================== -->
+            <!-- ROBOT-POSITION                         -->
+            <!-- ====================================== -->
+
+            <TextBox
+                x:Name="PositionTextBoxX"
+                Canvas.Left="100"
+                Canvas.Top="100"
+                Width="20"
+                IsReadOnly="True"
+                Text="{Binding RobotX}"/>
+
+            <TextBox
+                x:Name="PositionTextBoxY"
+                Canvas.Left="100"
+                Canvas.Top="150"
+                Width="20"
+                IsReadOnly="True"
+                Text="{Binding RobotY}"/>
+
+            <TextBox
+                x:Name="RotationTextBox"
+                Canvas.Left="100"
+                Canvas.Top="200"
+                Width="20"
+                IsReadOnly="True"
+                Text="{Binding Rotation}"/>
+
+            <!-- ====================================== -->
+            <!-- MANUELLE ROBOTERSTEUERUNG              -->
+            <!-- ====================================== -->
+
+            <Grid
+                Height="95"
+                Width="200"
+                Canvas.Left="970"
+                Canvas.Top="600">
+
+                <Button
+                    x:Name="UpButton"
+                    Content="Up"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Width="65"
+                    FontSize="14"
+                    Click="MoveUp_Click"/>
+
+                <Button
+                    x:Name="DownButton"
+                    Content="Down"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Width="65"
+                    FontSize="14"
+                    Click="MoveDown_Click"/>
+
+                <Button
+                    x:Name="LeftButton"
+                    Content="Left"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Width="65"
+                    FontSize="14"
+                    Click="MoveLeft_Click"/>
+
+                <Button
+                    x:Name="RightButton"
+                    Content="Right"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Width="65"
+                    FontSize="14"
+                    Click="MoveRight_Click"/>
+
+                <Button
+                    x:Name="UpLeftButton"
+                    Content="UpL"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Width="65"
+                    FontSize="14"
+                    Click="MoveUpLeft_Click"/>
+
+                <Button
+                    x:Name="UpRightButton"
+                    Content="UpR"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Width="65"
+                    FontSize="14"
+                    Click="MoveUpRight_Click"/>
+
+                <Button
+                    x:Name="DownLeftButton"
+                    Content="DownL"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Width="65"
+                    FontSize="14"
+                    Click="MoveDownLeft_Click"/>
+
+                <Button
+                    x:Name="DownRightButton"
+                    Content="DownR"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Width="65"
+                    FontSize="14"
+                    Click="MoveDownRight_Click"/>
+
+                <Button
+                    x:Name="StopButton"
+                    Content="Stop"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Width="65"
+                    FontSize="14"
+                    Click="StopButton_Click"/>
+
+            </Grid>
+
+            <!-- ====================================== -->
+            <!-- ROBOT-DREHUNG                          -->
+            <!-- ====================================== -->
+
+            <Grid
+                Height="30"
+                Width="200"
+                Canvas.Left="970"
+                Canvas.Top="700">
+
+                <Button
+                    x:Name="TurnLeft"
+                    Content="Turn L"
+                    HorizontalAlignment="Left"
+                    Width="65"
+                    Click="TurnLeft_Click"/>
+
+                <Button
+                    x:Name="TurnRight"
+                    Content="Turn R"
+                    HorizontalAlignment="Right"
+                    Width="65"
+                    Click="TurnRight_Click"/>
+
+                <Button
+                    x:Name="TurnToZeroDegrees"
+                    Content="0°"
+                    HorizontalAlignment="Center"
+                    Width="65"
+                    Click="TurnToZeroDegrees_Click"/>
+
+            </Grid>
+
+        </Canvas>
+
+    </Grid>
 
 </Window>

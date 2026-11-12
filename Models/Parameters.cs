@@ -2,8 +2,7 @@ namespace MyAvaloniaApp.Models;
 
 public class Parameters
 {
-
-        public enum BrickStatus
+    public enum BrickStatus
     {
         Moving,
         Docked,
@@ -17,7 +16,7 @@ public class Parameters
         NoBrick,
         NotOnDeliveryLine
     }
-    
+
     public enum Direction
     {
         stop = 0,
@@ -27,24 +26,29 @@ public class Parameters
         right = 4,
         turnLeft = 5,
         turnRight = 6,
-        zeroDegrees = 7,
+        zeroDegrees = 7
     }
+
     public enum LegoColor
     {
         red = 0,
         green = 1,
         blue = 2,
-        yellow = 3,
+        yellow = 3
     }
+
     public enum LegoSize
     {
         small = 0,
-        large = 1,
+        large = 1
     }
 
     public const int step = 3;
-    public const int turnAngle = 3;
+    public const int rotationStep = 3;
+
     public const int bricksPerLine = 4;
-    public const int timerInterval = 50;        //Timer Interval in ms
+    public const int orderSize = 8;
+
+    public const int timerInterval = 50;
     public const int robotTimerInterval = 150;
 }

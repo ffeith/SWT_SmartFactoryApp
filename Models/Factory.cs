@@ -1,268 +1,513 @@
-using CommunityToolkit.Mvvm.ComponentModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Drawing;
-using MyAvaloniaApp.Models;
-using static MyAvaloniaApp.Models.Parameters;
-using Avalonia.Data;
-using static MyAvaloniaApp.Models.ViewParameters;
-using System.Collections.Generic;
-using Avalonia.Controls;
 using System;
+using System.Collections.Generic;
+using static MyAvaloniaApp.Models.Parameters;
 
 namespace MyAvaloniaApp.Models;
 
+// Koordiniert Roboter, Produktionslinien, Aufträge und Steintransport.
 public class Factory
 {
-    private Robot robot;
-    public double RobotX => robot.Location.X;
-    public double RobotY => robot.Location.Y;
-    public double RobotAngle => robot.Rotation;
-    public Direction RobotDirection => robot.RobotDirection;
-    public double Rotation => RobotAngle;
-    private ProductionLine productionLineRed = new ProductionLine(ProductionLinePoseRed, Parameters.LegoColor.red);
-    private ProductionLine productionLineYellow = new ProductionLine(ProductionLinePoseYellow, Parameters.LegoColor.yellow);
-    private ProductionLine productionLineBlue = new ProductionLine(ProductionLinePoseBlue, Parameters.LegoColor.blue);
-    private ProductionLine productionLineGreen = new ProductionLine(ProductionLinePoseGreen, Parameters.LegoColor.green);
-    private ProductionLine productionLineRecycle = new ProductionLine(ProductionLinePoseRecycle);
-    /*private ProductionLine productionLineRecycle =
-    new ProductionLine(
-        ProductionLinePoseRecycle,
-        new[]
-        {
-            Parameters.LegoColor.yellow,
-            Parameters.LegoColor.red,
-            Parameters.LegoColor.green,
-            Parameters.LegoColor.blue
-        },
-        true);*/
+    private readonly Robot robot;
 
-    private ProductionLine productionLineDelivery = new ProductionLine(ProductionLinePoseDelivery);
-    public ProductionLine ProductionLineRed => productionLineRed;
-    public ProductionLine ProductionLineYellow => productionLineYellow;
-    public ProductionLine ProductionLineBlue => productionLineBlue;
-    public ProductionLine ProductionLineGreen => productionLineGreen;
-    public ProductionLine ProductionLineRecycle => productionLineRecycle;
-    public ProductionLine ProductionLineDelivery => productionLineDelivery;
-    private double ProductionLineRedX => productionLineRed.ProductionLinePose.X;
-    private double ProductionLineRedY => productionLineRed.ProductionLinePose.Y;
-    private double ProductionLineRedAngle => productionLineRed.ProductionLinePose.Angle;
-    private double ProductionLineYellowX => productionLineYellow.ProductionLinePose.X;
-    private double ProductionLineYellowY => productionLineYellow.ProductionLinePose.Y;
-    private double ProductionLineYellowAngle => productionLineYellow.ProductionLinePose.Angle;
-    private double ProductionLineBlueX => productionLineBlue.ProductionLinePose.X;
-    private double ProductionLineBlueY => productionLineBlue.ProductionLinePose.Y;
-    private double ProductionLineBlueAngle => productionLineBlue.ProductionLinePose.Angle;
-    private double ProductionLineGreenX => productionLineGreen.ProductionLinePose.X;
-    private double ProductionLineGreenY => productionLineGreen.ProductionLinePose.Y;
-    private double ProductionLineGreenAngle => productionLineGreen.ProductionLinePose.Angle;
-    private double ProductionLineRecycleX => productionLineRecycle.ProductionLinePose.X;
-    private double ProductionLineRecycleY => productionLineRecycle.ProductionLinePose.Y;
-    private double ProductionLineRecycleAngle => productionLineRecycle.ProductionLinePose.Angle;
-    private double ProductionLineDeliveryX => productionLineDelivery.ProductionLinePose.X;
-    private double ProductionLineDeliveryY => productionLineDelivery.ProductionLinePose.Y;
-    private double ProductionLineDeliveryYngle => productionLineDelivery.ProductionLinePose.Angle;
-    public List<LegoBrick> RedBricks => productionLineRed.Bricks;
-    public List<LegoBrick> BlueBricks => productionLineBlue.Bricks;
-    public List<LegoBrick> GreenBricks => productionLineGreen.Bricks;
-    public List<LegoBrick> YellowBricks => productionLineYellow.Bricks;
-    private readonly List<LegoBrick> logistics = new List<LegoBrick>();
-    public double CustomerArrowX => ViewParameters.CustomerArrowPose.X;
-    public double CustomerArrowY => ViewParameters.CustomerArrowPose.Y;
-    public double RecyclingArrowX => ViewParameters.RecyclingArrowPose.X;
-    public double RecyclingArrowY => ViewParameters.RecyclingArrowPose.Y;
-    private bool naechsterZumRecycling = false;
-    public event Action<Parameters.LegoColor>? BrickDelivered;
+    private readonly ProductionLine productionRed =
+        new(ViewParameters.ProductionLinePoseRed);
+
+    private readonly ProductionLine productionGreen =
+        new(ViewParameters.ProductionLinePoseGreen);
+
+    private readonly ProductionLine productionBlue =
+        new(ViewParameters.ProductionLinePoseBlue);
+
+    private readonly ProductionLine productionYellow =
+        new(ViewParameters.ProductionLinePoseYellow);
+
+    private readonly ProductionLine productionRecycle =
+        new(ViewParameters.ProductionLinePoseRecycle);
+
+    private readonly ProductionLine productionDelivery =
+        new(ViewParameters.ProductionLinePoseDelivery);
+
+    private readonly Logistics logistics = new();
+
+    private readonly List<LegoBrick> transportBricks = new();
+
+    private readonly List<ProductionLine> productionLines;
+
+    public double RobotX => robot.X;
+    public double RobotY => robot.Y;
+    public double RobotAngle => robot.Angle;
+
+    public Direction RobotDirection => robot.RobotDirection;
+
+    public ProductionLine ProductionLineRed => productionRed;
+    public ProductionLine ProductionLineGreen => productionGreen;
+    public ProductionLine ProductionLineBlue => productionBlue;
+    public ProductionLine ProductionLineYellow => productionYellow;
+
+    public ProductionLine ProductionLineRecycle => productionRecycle;
+    public ProductionLine ProductionLineDelivery => productionDelivery;
+
+    // Zusätzliche sprechende Namen für andere Klassen.
+    public ProductionLine RecycleLine => productionRecycle;
+    public ProductionLine DeliveryLine => productionDelivery;
+
+    public List<LegoBrick> RedBricks => productionRed.Bricks;
+    public List<LegoBrick> GreenBricks => productionGreen.Bricks;
+    public List<LegoBrick> BlueBricks => productionBlue.Bricks;
+    public List<LegoBrick> YellowBricks => productionYellow.Bricks;
+
+    public double CustomerArrowX =>
+        ViewParameters.CustomerArrowPose.X;
+
+    public double CustomerArrowY =>
+        ViewParameters.CustomerArrowPose.Y;
+
+    public double RecyclingArrowX =>
+        ViewParameters.RecyclingArrowPose.X;
+
+    public double RecyclingArrowY =>
+        ViewParameters.RecyclingArrowPose.Y;
+
+    public List<LegoBrick> LegoOrder => logistics.Order;
+
+    public int LogisticsStep =>
+        logistics.CurrentStepNumber();
+
+    public bool OrderComplete =>
+        logistics.IsComplete;
+
+    public bool HasOrder =>
+        logistics.HasOrder;
+
+    public LegoColor? CurrentBrickColor =>
+        logistics.CurrentStep()?.Color;
+
+    public ProductionLine? CurrentStation =>
+        logistics.PickStation(productionLines, productionRecycle);
+
+    public bool IsBrickPickedUp =>
+        logistics.IsBrickPickedUp;
+
+    public bool IsRecyclingRequired =>
+        logistics.IsRecyclingRequired;
+
+    public int OrderCount =>
+        logistics.Order.Count;
+
+    public event Action<LegoColor>? BrickDelivered;
     public event Action<string>? TransportMessage;
+
     public Factory()
     {
-        List<ProductionLine> productionLines = new List<ProductionLine>
+        productionLines = new List<ProductionLine>
         {
-            productionLineRed,
-            productionLineYellow,
-            productionLineBlue,
-            productionLineGreen,
-            productionLineRecycle,
-            productionLineDelivery
+            productionRed,
+            productionGreen,
+            productionBlue,
+            productionYellow
         };
 
-        robot = new Robot(RobotPose.Location, Borders, productionLines);
+        List<ProductionLine> allLines = new(productionLines)
+        {
+            productionRecycle,
+            productionDelivery
+        };
+
+        robot = new Robot(
+            ViewParameters.RobotPose,
+            ViewParameters.Borders,
+            allLines,
+            allLines);
     }
+
+    // Bewegt den Roboter und prüft danach Kontakte.
     public void RobotBewegen(Direction direction)
     {
         robot.Bewegen(direction);
+
         CheckBrickContacts();
     }
-    
+
+    // Bewegt Produktionslinien und transportierte Steine.
     public void LegoBricksBewegen()
     {
-        productionLineRed.Bewegen(-1);
-        productionLineBlue.Bewegen(-1);
-        productionLineYellow.Bewegen(1);
-        productionLineGreen.Bewegen(-1);
+        productionRed.Bewegen(-1);
+        productionBlue.Bewegen(-1);
+        productionYellow.Bewegen(1);
+        productionGreen.Bewegen(-1);
 
-        int deliveryLeft = ViewParameters.ProductionLinePoseDelivery.X;
-        int deliveryRight = deliveryLeft
-                            + ViewParameters.DeliveryLineWidth;
+        int deliveryLeft =
+            ViewParameters.ProductionLinePoseDelivery.X;
 
-        foreach (LegoBrick brick in new List<LegoBrick>(logistics))
+        int deliveryRight =
+            deliveryLeft + ViewParameters.DeliveryLineWidth;
+
+        foreach (LegoBrick brick in new List<LegoBrick>(transportBricks))
         {
-            int brickWidth = brick.Size == Parameters.LegoSize.large
+            int brickWidth = brick.Size == LegoSize.large
                 ? ViewParameters.BigBrickWidth
                 : ViewParameters.SmallBrickWidth;
 
-            // Erfolgreiche Lieferung: nach rechts zum Kunden.
-            if (brick.Status == Parameters.BrickStatus.ToCustomer)
+            if (brick.Status == BrickStatus.ToCustomer)
             {
-                if (brick.Location.X < deliveryRight)
-                {
-                    brick.BewegenZumKunden();
-                }
-                else if (brick.VersatzIstNull)
-                {
-                    Parameters.LegoColor color = brick.Color;
-
-                    brick.ZurueckZurProduktionslinie();
-                    logistics.Remove(brick);
-
-                    // Erfolgreiche Lieferung an das MainViewModel melden.
-                    BrickDelivered?.Invoke(color);
-
-                    TransportMessage?.Invoke(
-                        $"{Farbname(color)} Stein wurde erfolgreich an den Kunden geliefert.");
-                }
+                MoveBrickToCustomer(brick, deliveryRight);
             }
-
-            // Fehlerhafter Stein: nach links zum Recycling.
-            else if (brick.Status == Parameters.BrickStatus.ToRecycle)
+            else if (brick.Status == BrickStatus.ToRecycle)
             {
-                // Erst warten, bis der Stein vollständig links aus
-                // der Delivery Line herausgefahren ist.
-                if (brick.Location.X + brickWidth > deliveryLeft)
-                {
-                    brick.BewegenZumRecycling();
-                }
-                else
-                {
-                    int platz = FreierRecyclePlatz();
-
-                    if (platz >= 0)
-                    {
-                        brick.AufRecyclePlatz(
-                            RecyclePlatzPose(platz),
-                            platz);
-                        TransportMessage?.Invoke($"{Farbname(brick.Color)} Stein wurde zur Reparatur auf Recyclingplatz {platz + 1} abgelegt.");
-                    }
-                }
+                MoveBrickToRecycle(
+                    brick,
+                    deliveryLeft,
+                    brickWidth);
             }
         }
 
         CheckBrickContacts();
     }
 
-    public Parameters.UndockResult Undock()
+    // Bewegt einen akzeptierten Stein zum Kunden.
+    private void MoveBrickToCustomer(
+        LegoBrick brick,
+        int deliveryRight)
     {
-        // Zuerst prüfen, ob überhaupt ein Stein angedockt ist.
-        if (robot.Dockobjekt is not LegoBrick)
-            return Parameters.UndockResult.NoBrick;
+        if (brick.Location.X < deliveryRight)
+        {
+            brick.BewegenZumKunden();
+            return;
+        }
 
-        // Erst danach die Position prüfen.
+        if (!brick.VersatzIstNull)
+            return;
+
+        LegoColor color = brick.Color;
+
+        brick.ZurueckZurProduktionslinie();
+
+        transportBricks.Remove(brick);
+
+        logistics.BrickDelivered();
+
+        BrickDelivered?.Invoke(color);
+
+        TransportMessage?.Invoke(
+            $"{ColorName(color)} brick successfully delivered to customer.");
+    }
+
+    // Bewegt einen abgelehnten Stein zum Recycling.
+    private void MoveBrickToRecycle(
+        LegoBrick brick,
+        int deliveryLeft,
+        int brickWidth)
+    {
+        if (brick.Location.X + brickWidth > deliveryLeft)
+        {
+            brick.BewegenZumRecycling();
+            return;
+        }
+
+        int freePlace = FreierRecyclePlatz();
+
+        if (freePlace < 0)
+            return;
+
+        brick.AufRecyclePlatz(
+            RecyclePlatzPose(freePlace),
+            freePlace);
+
+        TransportMessage?.Invoke(
+            $"{ColorName(brick.Color)} brick placed on recycle position {freePlace + 1}.");
+    }
+
+    // Löst einen aufgenommenen Stein auf der Delivery Line.
+    public UndockResult Undock()
+    {
+        if (robot.Dockobjekt is not LegoBrick)
+            return UndockResult.NoBrick;
+
         if (!robot.AufDeliveryLinie())
-            return Parameters.UndockResult.NotOnDeliveryLine;
+            return UndockResult.NotOnDeliveryLine;
 
         LegoBrick? brick = robot.Undock();
 
         if (brick == null)
-            return Parameters.UndockResult.NoBrick;
+            return UndockResult.NoBrick;
 
-        // Vor dem Transport auf 0 Grad drehen.
         brick.Angle = 0;
 
-        // Transportziel bei jedem erfolgreichen Undocken wechseln.
-        if (naechsterZumRecycling)
+        if (logistics.ShouldRecycle())
         {
             brick.ZumRecycling();
-            naechsterZumRecycling = false;
+
+            logistics.BrickRejected(brick);
+
+            TransportMessage?.Invoke(
+                "Brick rejected: sent to recycle line.");
         }
         else
         {
             brick.ZumKunden();
-            naechsterZumRecycling = true;
+
+            TransportMessage?.Invoke(
+                "Brick sent to customer.");
         }
 
-        logistics.Add(brick);
+        transportBricks.Add(brick);
 
-        return Parameters.UndockResult.Success;
+        return UndockResult.Success;
     }
 
+    // Prüft, ob der Roboter den benötigten Stein erreicht.
     private void CheckBrickContacts()
     {
-        CheckBrickContacts(productionLineRed);
-        CheckBrickContacts(productionLineYellow);
-        CheckBrickContacts(productionLineBlue);
-        CheckBrickContacts(productionLineGreen);
-        CheckBrickContacts(productionLineRecycle);
-
-        foreach (LegoBrick brick in new List<LegoBrick>(logistics))
+        if (!logistics.HasOrder ||
+            logistics.IsComplete ||
+            logistics.IsBrickPickedUp)
         {
+            return;
+        }
+
+        // Zuerst normale Produktionslinien prüfen.
+        foreach (ProductionLine line in productionLines)
+        {
+            CheckBrickContacts(line);
+
+            if (robot.Dockobjekt != null)
+                return;
+        }
+
+        // Nach einer Ablehnung ist nur der abgelehnte Stein erlaubt.
+        foreach (LegoBrick brick in new List<LegoBrick>(transportBricks))
+        {
+            if (!logistics.IsNeeded(
+                brick,
+                productionRecycle,
+                productionLines,
+                productionRecycle))
+            {
+                continue;
+            }
+
             robot.Kontakt(brick);
 
-            // Ein wieder aufgenommener Stein verlässt die Logistikliste.
-            if (brick.Status == Parameters.BrickStatus.Docked)
+            if (robot.Dockobjekt == brick)
             {
-                logistics.Remove(brick);
+                logistics.BrickPickedUp();
+
+                transportBricks.Remove(brick);
+
+                return;
             }
         }
     }
 
+    // Prüft die Steine einer normalen Produktionslinie.
     private void CheckBrickContacts(ProductionLine line)
     {
-        // Kopie erstellen, weil wir die ursprüngliche Liste
-        // beim erfolgreichen Aufnehmen verändern können.
         foreach (LegoBrick brick in new List<LegoBrick>(line.Bricks))
+        {
+            if (!logistics.IsNeeded(
+                brick,
+                line,
+                productionLines,
+                productionRecycle))
+            {
+                continue;
+            }
+
             robot.Kontakt(brick);
+
+            if (robot.Dockobjekt == brick)
+            {
+                logistics.BrickPickedUp();
+                return;
+            }
+        }
     }
 
+    // Sucht den ersten freien Recyclingplatz.
     private int FreierRecyclePlatz()
     {
-        for (int platz = 0; platz < Parameters.bricksPerLine; platz++)
+        for (int place = 0;
+             place < Parameters.bricksPerLine;
+             place++)
         {
-            bool belegt = false;
+            bool occupied = false;
 
-            foreach (LegoBrick brick in logistics)
+            foreach (LegoBrick brick in transportBricks)
             {
-                if (brick.RecyclePlatz == platz)
+                if (brick.RecyclePlatz == place)
                 {
-                    belegt = true;
+                    occupied = true;
                     break;
                 }
             }
 
-            if (!belegt)
-                return platz;
+            if (!occupied)
+                return place;
         }
 
         return -1;
     }
 
-    private Pose RecyclePlatzPose(int platz)
+    // Berechnet die Position eines Recyclingplatzes.
+    private Pose RecyclePlatzPose(int place)
     {
-        int x = ViewParameters.ProductionLinePoseRecycle.X + 25 + platz * 24;
-        int y = ViewParameters.ProductionLinePoseRecycle.Y
-                - ViewParameters.SmallBrickHeight;
+        int x =
+            ViewParameters.ProductionLinePoseRecycle.X
+            + 25
+            + place * 24;
+
+        int y =
+            ViewParameters.ProductionLinePoseRecycle.Y
+            - ViewParameters.SmallBrickHeight;
 
         return new Pose(x, y, 0);
     }
 
-    private static string Farbname(Parameters.LegoColor color)
+    private static string ColorName(LegoColor color)
     {
         return color switch
         {
-            Parameters.LegoColor.red => "Roter",
-            Parameters.LegoColor.blue => "Blauer",
-            Parameters.LegoColor.green => "Grüner",
-            Parameters.LegoColor.yellow => "Gelber",
+            LegoColor.red => "red",
+            LegoColor.green => "green",
+            LegoColor.blue => "blue",
+            LegoColor.yellow => "yellow",
             _ => "LEGO"
         };
+    }
+
+    // Erzeugt vier Steine auf jeder normalen Produktionslinie.
+    public void SetupProductionLines()
+    {
+        foreach (ProductionLine line in productionLines)
+        {
+            line.CreateBricks();
+        }
+    }
+
+    // Gibt alle Steine der normalen Produktionslinien zurück.
+    public List<LegoBrick> AlleBricks()
+    {
+        List<LegoBrick> allBricks = new();
+
+        foreach (ProductionLine line in productionLines)
+        {
+            allBricks.AddRange(line.Bricks);
+        }
+
+        return allBricks;
+    }
+
+    public void CreateOrder()
+    {
+        List<LegoBrick> allBricks = AlleBricks();
+
+        if (allBricks.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "Bitte zuerst die Produktionslinien einrichten.");
+        }
+
+        logistics.CreateRandomOrder(allBricks);
+    }
+
+    public int GetOrder(LegoColor color) =>
+        logistics.GetOrder(color);
+
+    public int GetDelivered(LegoColor color) =>
+        logistics.GetDelivered(color);
+
+    // Positioniert den Roboter vor der nächsten Station.
+    public bool GoToLine()
+    {
+        if (!logistics.HasOrder ||
+            logistics.IsComplete ||
+            logistics.IsBrickPickedUp)
+        {
+            return false;
+        }
+
+        ProductionLine? station =
+            logistics.PickStation(productionLines, productionRecycle);
+
+        LegoBrick? brick = logistics.PickupBrick;
+
+        if (station == null || brick == null)
+            return false;
+
+        if (station == productionRecycle &&
+            brick.RecyclePlatz < 0)
+        {
+            TransportMessage?.Invoke(
+                "Please wait until the brick reaches the recycle line.");
+
+            return false;
+        }
+
+        double targetAngle;
+        double lineWidth;
+        double lineHeight;
+
+        if (station == productionRed)
+        {
+            targetAngle = ViewParameters.GoToRedAngle;
+            lineWidth = ViewParameters.ProductionLineWidth;
+            lineHeight = ViewParameters.ProductionLineHeight;
+        }
+        else if (station == productionBlue)
+        {
+            targetAngle = ViewParameters.GoToBlueAngle;
+            lineWidth = ViewParameters.ProductionLineWidth;
+            lineHeight = ViewParameters.ProductionLineHeight;
+        }
+        else if (station == productionGreen)
+        {
+            targetAngle = ViewParameters.GoToGreenAngle;
+            lineWidth = ViewParameters.ProductionLineWidth;
+            lineHeight = ViewParameters.ProductionLineHeight;
+        }
+        else if (station == productionYellow)
+        {
+            targetAngle = ViewParameters.GoToYellowAngle;
+            lineWidth = ViewParameters.ProductionLineWidth;
+            lineHeight = ViewParameters.ProductionLineHeight;
+        }
+        else
+        {
+            targetAngle = ViewParameters.GoToRecycleAngle;
+            lineWidth = ViewParameters.RecycleLineWidth;
+            lineHeight = ViewParameters.RecycleLineHeight;
+        }
+
+        robot.GeheZuLinie(
+            station.ProductionLinePose,
+            lineWidth,
+            lineHeight,
+            targetAngle);
+
+        TransportMessage?.Invoke(
+            "Robot at the line: drive forward to dock the brick.");
+
+        return true;
+    }
+
+    // Positioniert den Roboter vor der Delivery Line.
+    public bool GoToDelivery()
+    {
+        if (robot.Dockobjekt is not LegoBrick ||
+            !logistics.IsBrickPickedUp)
+        {
+            return false;
+        }
+
+        robot.GeheZuLinie(
+            productionDelivery.ProductionLinePose,
+            ViewParameters.DeliveryLineWidth,
+            ViewParameters.DeliveryLineHeight,
+            ViewParameters.GoToDeliveryAngle);
+
+        TransportMessage?.Invoke(
+            "Robot at delivery: drive forward, then click undock.");
+
+        return true;
     }
 }

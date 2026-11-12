@@ -1,35 +1,84 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Avalonia.Media;
 using MyAvaloniaApp.Models;
 
 namespace MyAvaloniaApp.ViewModels;
 
-public partial class LegoBricksViewModel : ViewModelBase
+// Stellt einen einzelnen LEGO-Stein in der grafischen Oberfläche dar.
+public partial class LegoBrickViewModel : ViewModelBase
 {
-    private LegoBrick brick;
-    [ObservableProperty] private double x;
-    [ObservableProperty] private double y;
-    [ObservableProperty] private double angle;
-    public Parameters.LegoColor Color => brick.Color;
+    private LegoBrick? brick;
+
+    [ObservableProperty]
+    private double x;
+
+    [ObservableProperty]
+    private double y;
+
+    [ObservableProperty]
+    private double angle;
+
     public double Width =>
-    brick.Size == Parameters.LegoSize.large
-        ? ViewParameters.BigBrickWidth
-        : ViewParameters.SmallBrickWidth;
+        brick == null
+            ? 0
+            : brick.Size == Parameters.LegoSize.large
+                ? ViewParameters.BigBrickWidth
+                : ViewParameters.SmallBrickWidth;
 
     public double Height =>
-        brick.Size == Parameters.LegoSize.large
-            ? ViewParameters.BigBrickHeight
-            : ViewParameters.SmallBrickHeight;
-    
-    public LegoBricksViewModel(LegoBrick brick)
+        brick == null
+            ? 0
+            : brick.Size == Parameters.LegoSize.large
+                ? ViewParameters.BigBrickHeight
+                : ViewParameters.SmallBrickHeight;
+
+    public IBrush Fill => brick?.Color switch
     {
-        this.brick = brick;
-        RefreshProperties();
+        Parameters.LegoColor.red => Brushes.Red,
+        Parameters.LegoColor.blue => Brushes.Blue,
+        Parameters.LegoColor.green => Brushes.Green,
+        Parameters.LegoColor.yellow => Brushes.Yellow,
+        _ => Brushes.Transparent
+    };
+
+    public bool IsVisible => brick != null;
+
+    public LegoBrickViewModel()
+    {
     }
 
-    public void RefreshProperties()
+    public LegoBrickViewModel(LegoBrick brick)
     {
-        X = brick.Location.X;
-        Y = brick.Location.Y;
+        SetBrick(brick);
+    }
+
+    // Verknüpft das ViewModel mit einem echten Stein.
+    public void SetBrick(LegoBrick? newBrick)
+    {
+        brick = newBrick;
+
+        OnPropertyChanged(nameof(Width));
+        OnPropertyChanged(nameof(Height));
+        OnPropertyChanged(nameof(Fill));
+        OnPropertyChanged(nameof(IsVisible));
+
+        Refresh();
+    }
+
+    // Aktualisiert Position und Ausrichtung.
+    public void Refresh()
+    {
+        if (brick == null)
+        {
+            X = 0;
+            Y = 0;
+            Angle = 0;
+
+            return;
+        }
+
+        X = brick.X;
+        Y = brick.Y;
         Angle = brick.Angle;
     }
 }

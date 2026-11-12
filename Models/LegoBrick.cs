@@ -1,79 +1,67 @@
-using System;
-using System.Drawing;
 using static MyAvaloniaApp.Models.Parameters;
 
 namespace MyAvaloniaApp.Models;
 
+// Repräsentiert einen LEGO-Stein in der Fabrik.
 public class LegoBrick : Beweger
 {
-    private LegoColor color;
-    private LegoSize size;
-
-    // Verfolgt die Bewegungsphase der ursprünglichen Produktionslinie.
-    private int versatz = 0;
-
-    public LegoColor Color
-    {
-        get { return color; }
-        set { color = value; }
-    }
-
-    public LegoSize Size
-    {
-        get { return size; }
-        set { size = value; }
-    }
-
+    // Ursprüngliche Position auf der Produktionslinie.
     public Pose LegoPose { get; }
 
-    public Parameters.BrickStatus Status { get; set; }
-        = Parameters.BrickStatus.Moving;
+    public LegoColor Color { get; }
+    public LegoSize Size { get; }
 
-    // -1 bedeutet: Der Stein belegt keinen Recyclingplatz.
-    public int RecyclePlatz { get; set; } = -1;
+    public BrickStatus Status { get; set; } = BrickStatus.Moving;
+
+    // -1 bedeutet, dass der Stein keinen Recyclingplatz belegt.
+    public int RecyclePlatz { get; private set; } = -1;
+
+    // Abstand zur ursprünglichen Position entlang der Produktionslinie.
+    private int versatz;
+
+    public bool VersatzIstNull => versatz == 0;
 
     public LegoBrick(Pose pose, LegoColor color, LegoSize size)
         : base(pose, ViewParameters.Borders)
     {
+        LegoPose = pose;
         Color = color;
         Size = size;
-        LegoPose = pose;
     }
 
+    // Wird aufgerufen, wenn der Roboter den Stein aufnimmt.
     public void Andocken()
     {
-        Status = Parameters.BrickStatus.Docked;
-
-        // Falls der Stein aus dem Recycling kommt, wird sein Platz frei.
+        Status = BrickStatus.Docked;
         RecyclePlatz = -1;
     }
 
+    // Normale manuelle Bewegung eines Steins.
     public override void Bewegen(Direction direction)
     {
-        if (Status == Parameters.BrickStatus.Docked || RecyclePlatz >= 0)
+        if (Status == BrickStatus.Docked || RecyclePlatz >= 0)
             return;
 
         base.Bewegen(direction);
     }
 
+    // Verfolgt die Bewegung der ursprünglichen Produktionslinie.
     public override void Bewegen(double deltaX, double deltaY)
     {
-        // Bewegungen der ursprünglichen Produktionslinie weiterverfolgen,
-        // auch wenn der Stein gerade vom Roboter transportiert wird.
-        double winkel = LegoPose.Angle * Math.PI / 180.0;
+        double lineAngle =
+            LegoPose.Angle * System.Math.PI / 180.0;
 
-        double bewegungEntlangDerLinie =
-            deltaX * Math.Cos(winkel)
-            + deltaY * Math.Sin(winkel);
+        double movementAlongLine =
+            deltaX * System.Math.Cos(lineAngle) +
+            deltaY * System.Math.Sin(lineAngle);
 
-        if (bewegungEntlangDerLinie > 0)
+        if (movementAlongLine > 0)
             versatz++;
-        else if (bewegungEntlangDerLinie < 0)
+        else if (movementAlongLine < 0)
             versatz--;
 
-        // Nur Steine auf ihrer Produktionslinie bewegen sich räumlich
-        // mit der Linie. Transportierte Steine behalten ihre Position.
-        if (Status != Parameters.BrickStatus.Moving || RecyclePlatz >= 0)
+        // Nur Steine auf ihrer normalen Produktionslinie bewegen sich räumlich.
+        if (Status != BrickStatus.Moving || RecyclePlatz >= 0)
             return;
 
         base.Bewegen(deltaX, deltaY);
@@ -81,47 +69,61 @@ public class LegoBrick : Beweger
 
     public void ZumKunden()
     {
-        Status = Parameters.BrickStatus.ToCustomer;
+        Status = BrickStatus.ToCustomer;
     }
 
     public void ZumRecycling()
     {
-        Status = Parameters.BrickStatus.ToRecycle;
+        Status = BrickStatus.ToRecycle;
     }
 
-    public bool VersatzIstNull => versatz == 0;
-
+    // Transportiert den Stein horizontal in Richtung Kunde.
     public void BewegenZumKunden()
     {
-        if (Status == Parameters.BrickStatus.ToCustomer)
-            base.Bewegen(Parameters.Direction.right);
+        if (Status == BrickStatus.ToCustomer)
+        {
+            base.Bewegen(Parameters.step, 0);
+        }
     }
 
+    // Transportiert den Stein horizontal in Richtung Recyclinglinie.
     public void BewegenZumRecycling()
     {
-        if (Status == Parameters.BrickStatus.ToRecycle)
-            base.Bewegen(Parameters.Direction.left);
+        if (Status == BrickStatus.ToRecycle)
+        {
+            base.Bewegen(-Parameters.step, 0);
+        }
     }
 
+    // Setzt den Stein an seine ursprüngliche Position zurück.
     public void ZurueckZurProduktionslinie()
     {
         base.Bewegen(
-            LegoPose.X - Location.X,
-            LegoPose.Y - Location.Y);
+            LegoPose.X - X,
+            LegoPose.Y - Y);
 
-        Angle = LegoPose.Angle;
+        Pose = LegoPose;
+
         RecyclePlatz = -1;
-        Status = Parameters.BrickStatus.Moving;
+        versatz = 0;
+        Status = BrickStatus.Moving;
     }
 
-    public void AufRecyclePlatz(Pose pose, int platz)
+    // Legt einen abgelehnten Stein auf einem Recyclingplatz ab.
+    public void AufRecyclePlatz(Pose recyclePose, int platz)
     {
         base.Bewegen(
-            pose.X - Location.X,
-            pose.Y - Location.Y);
+            recyclePose.X - X,
+            recyclePose.Y - Y);
 
-        Angle = pose.Angle;
+        Pose = recyclePose;
+
         RecyclePlatz = platz;
-        Status = Parameters.BrickStatus.Moving;
+        Status = BrickStatus.Moving;
+    }
+
+    public override string ToString()
+    {
+        return $"{Color} {Size}";
     }
 }
