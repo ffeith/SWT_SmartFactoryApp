@@ -45,6 +45,11 @@ public partial class MainViewModel : ViewModelBase
     public double CustomerArrowHeight => ViewParameters.CustomerArrowHeight;
     public double RecyclingArrowWidth => ViewParameters.RecyclingArrowWidth;
     public double RecyclingArrowHeight => ViewParameters.RecyclingArrowHeight;
+    // Gibt an, ob die Produktionslinien bereits eingerichtet wurden.
+    private bool bricksVisible;
+
+    // Der Setup-Button ist nach der Initialisierung deaktiviert.
+    public bool CanSetupProductionLines => !bricksVisible;
 
     private string undockInfo = string.Empty;
     public string UndockInfo
@@ -60,60 +65,100 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    private int redDelivered;
-    public int RedDelivered
-    {
-        get => redDelivered;
-        private set
-        {
-            if (redDelivered == value)
-                return;
+    // Bestellte Steine je Farbe.
+    public int RedOrder => factory.GetOrder(LegoColor.red);
+    public int BlueOrder => factory.GetOrder(LegoColor.blue);
+    public int GreenOrder => factory.GetOrder(LegoColor.green);
+    public int YellowOrder => factory.GetOrder(LegoColor.yellow);
 
-            redDelivered = value;
-            OnPropertyChanged(nameof(RedDelivered));
+    // Erfolgreich gelieferte Steine je Farbe.
+    public int RedDelivered => factory.GetDelivered(LegoColor.red);
+    public int BlueDelivered => factory.GetDelivered(LegoColor.blue);
+    public int GreenDelivered => factory.GetDelivered(LegoColor.green);
+    public int YellowDelivered => factory.GetDelivered(LegoColor.yellow);
+
+    // Ein Auftrag kann erst nach der Produktion erstellt werden.
+    public bool CanCreateOrder => bricksVisible && !factory.HasOrder;
+    public void CreateOrder()
+    {
+        if (!CanCreateOrder)
+            return;
+
+        factory.CreateOrder();
+
+        // Auftragstabelle aktualisieren.
+        OnPropertyChanged(nameof(RedOrder));
+        OnPropertyChanged(nameof(BlueOrder));
+        OnPropertyChanged(nameof(GreenOrder));
+        OnPropertyChanged(nameof(YellowOrder));
+
+        // Ersten Logistikschritt anzeigen.
+        OnPropertyChanged(nameof(CurrentStepInfo));
+
+        // Order-Button deaktivieren.
+        OnPropertyChanged(nameof(CanCreateOrder));
+    }
+
+    public string CurrentStepInfo
+    {
+        get
+        {
+            if (!factory.HasOrder)
+                return string.Empty;
+
+            if (factory.OrderComplete)
+                return $"Order complete: all {Parameters.orderSize} bricks delivered.";
+
+            if (factory.CurrentBrickColor == null)
+                return string.Empty;
+
+            string color = ColorName(factory.CurrentBrickColor.Value);
+
+            string step =
+                $"Step {factory.LogisticsStep}/{factory.OrderCount}: ";
+
+            // Sobald der Roboter den richtigen Stein hält,
+            // ändert sich die Anweisung.
+            if (factory.IsBrickPickedUp)
+                return step + $"Bring the {color} brick to delivery.";
+
+            string station = StationName(factory.CurrentStation);
+
+            return step +
+                $"Pick the {color} brick from {station} and bring to delivery.";
         }
     }
 
-    private int blueDelivered;
-    public int BlueDelivered
+    private static string ColorName(LegoColor color)
     {
-        get => blueDelivered;
-        private set
+        return color switch
         {
-            if (blueDelivered == value)
-                return;
-
-            blueDelivered = value;
-            OnPropertyChanged(nameof(BlueDelivered));
-        }
+            LegoColor.red => "red",
+            LegoColor.green => "green",
+            LegoColor.blue => "blue",
+            LegoColor.yellow => "yellow",
+            _ => "unknown"
+        };
     }
 
-    private int greenDelivered;
-    public int GreenDelivered
+    private string StationName(ProductionLine? station)
     {
-        get => greenDelivered;
-        private set
-        {
-            if (greenDelivered == value)
-                return;
+        if (station == factory.ProductionLineRed)
+            return "red production line";
 
-            greenDelivered = value;
-            OnPropertyChanged(nameof(GreenDelivered));
-        }
-    }
+        if (station == factory.ProductionLineGreen)
+            return "green production line";
 
-    private int yellowDelivered;
-    public int YellowDelivered
-    {
-        get => yellowDelivered;
-        private set
-        {
-            if (yellowDelivered == value)
-                return;
+        if (station == factory.ProductionLineBlue)
+            return "blue production line";
 
-            yellowDelivered = value;
-            OnPropertyChanged(nameof(YellowDelivered));
-        }
+        if (station == factory.ProductionLineYellow)
+            return "yellow production line";
+
+        if (station == factory.ProductionLineRecycle)
+            return "recycle line";
+
+        return "unknown line";
     }
 
     public MainViewModel()
@@ -122,20 +167,11 @@ public partial class MainViewModel : ViewModelBase
         factory.BrickDelivered += HandleBrickDelivered;
         factory.TransportMessage += HandleTransportMessage;
 
-        foreach (var brick in factory.ProductionLineRed.Bricks)
-            BricksView.Add(new LegoBricksViewModel(brick));
-
-        foreach (var brick in factory.ProductionLineYellow.Bricks)
-            BricksView.Add(new LegoBricksViewModel(brick));
-
-        foreach (var brick in factory.ProductionLineBlue.Bricks)
-            BricksView.Add(new LegoBricksViewModel(brick));
-
-        foreach (var brick in factory.ProductionLineGreen.Bricks)
-            BricksView.Add(new LegoBricksViewModel(brick));
-
-        foreach (var brick in factory.ProductionLineRecycle.Bricks)
-            BricksView.Add(new LegoBricksViewModel(brick));
+        // 16 leere Anzeigeplätze für die später erzeugten Steine vorbereiten.
+        for (int i = 0; i < 4 * Parameters.bricksPerLine; i++)
+        {
+            BricksView.Add(new LegoBricksViewModel());
+        }
 
         timer = new DispatcherTimer();
         timer.Interval = TimeSpan.FromMilliseconds(timerInterval);
@@ -279,6 +315,7 @@ public partial class MainViewModel : ViewModelBase
         {
             brick.RefreshProperties();
         }
+        OnPropertyChanged(nameof(CurrentStepInfo));
     }
     public bool IsStepMovementSelected
     {
@@ -340,26 +377,84 @@ public partial class MainViewModel : ViewModelBase
     {
         switch (color)
         {
-            case Parameters.LegoColor.red:
-                RedDelivered++;
+            case LegoColor.red:
+                OnPropertyChanged(nameof(RedDelivered));
                 break;
 
-            case Parameters.LegoColor.blue:
-                BlueDelivered++;
+            case LegoColor.blue:
+                OnPropertyChanged(nameof(BlueDelivered));
                 break;
 
-            case Parameters.LegoColor.green:
-                GreenDelivered++;
+            case LegoColor.green:
+                OnPropertyChanged(nameof(GreenDelivered));
                 break;
 
-            case Parameters.LegoColor.yellow:
-                YellowDelivered++;
+            case LegoColor.yellow:
+                OnPropertyChanged(nameof(YellowDelivered));
                 break;
         }
+
+        OnPropertyChanged(nameof(CurrentStepInfo));
     }
 
-    private void HandleTransportMessage(string message)
+   private void HandleTransportMessage(string message)
     {
         UndockInfo = message;
+        OnPropertyChanged(nameof(CurrentStepInfo));
+    }
+
+    public void SetupProductionLines()
+    {
+        // Ein erneuter Aufruf ist nicht erlaubt.
+        if (bricksVisible)
+            return;
+
+        // Factory erzeugt die Steine auf allen vier Produktionslinien.
+        factory.SetupProductionLines();
+
+        // Alle erzeugten Steine in einer Liste zusammenfassen.
+        List<LegoBrick> allBricks = new List<LegoBrick>();
+
+        allBricks.AddRange(factory.RedBricks);
+        allBricks.AddRange(factory.YellowBricks);
+        allBricks.AddRange(factory.BlueBricks);
+        allBricks.AddRange(factory.GreenBricks);
+
+        // Jeden Stein mit einem GUI-ViewModel verbinden.
+        for (int i = 0; i < allBricks.Count; i++)
+        {
+            BricksView[i].SetBrick(allBricks[i]);
+        }
+
+        // Setup als abgeschlossen markieren.
+        bricksVisible = true;
+        OnPropertyChanged(nameof(CanCreateOrder));
+
+        // GUI über den neuen Zustand informieren.
+        OnPropertyChanged(nameof(CanSetupProductionLines));
+
+        NotifyLegoBricksPoseChange();
+    }
+    public void GoToLine()
+    {
+        // Eventuell laufende kontinuierliche Bewegung beenden.
+        StopContinuousRobotMovement();
+
+        if (!factory.GoToLine())
+            return;
+
+        NotifyRobotPoseChanged();
+        NotifyLegoBricksPoseChange();
+    }
+
+    public void GoToDelivery()
+    {
+        StopContinuousRobotMovement();
+
+        if (!factory.GoToDelivery())
+            return;
+
+        NotifyRobotPoseChanged();
+        NotifyLegoBricksPoseChange();
     }
 }

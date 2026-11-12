@@ -9,7 +9,6 @@ public class Beweger
 {
     private Point location;
     private Rectangle borders;
-    private double rotation;
     private double angle;
     private Beweger? dockobjekt;
     private double dockWinkelOffset;
@@ -27,13 +26,12 @@ public class Beweger
         get => borders; set => borders = value;
     }
 
-    public double Rotation
-    {
-        get {return rotation;}
-    }
+   public double Rotation => angle;
+
     public double Angle
     {
-        get {return angle;} set {angle = value;}
+        get => angle;
+        set => angle = value;
     }
 
     public Beweger(
@@ -64,13 +62,13 @@ public class Beweger
             Drehen(direction);
             return;
         }
-        double angleRad = rotation * Math.PI / 180.0;
+        double angleRad = angle * Math.PI / 180.0;
 
         double deltaX = 0;
         double deltaY = 0;
 
         // Zunächst nur die geplante Rotation berechnen.
-        double candidateRotation = rotation;
+        double candidateRotation = angle;
 
         switch (direction)
         {
@@ -132,14 +130,14 @@ public class Beweger
 
         // Erst jetzt die Bewegung übernehmen.
         Location = newLoc;
-        rotation = candidateRotation;
+        Angle = candidateRotation;
 
         DockobjektNachziehen();
     }
 
     private void Drehen(Parameters.Direction direction)
     {
-        double candidateRotation = rotation;
+        double candidateRotation = angle;
 
         switch (direction)
         {
@@ -171,7 +169,7 @@ public class Beweger
         if (!PositionErlaubt(Location, candidateRotation))
             return;
 
-        rotation = candidateRotation;
+        Angle = candidateRotation;
 
         // Einen aufgenommenen Stein nachziehen.
         DockobjektNachziehen();
@@ -214,7 +212,7 @@ public class Beweger
             ? BigBrickHeight
             : SmallBrickHeight;
 
-        Point tcp = Greifpunkt(Location, rotation);
+        Point tcp = Greifpunkt(Location, angle);
 
         // Die linke obere Ecke so berechnen,
         // dass die Mitte des Steins am TCP liegt.
@@ -223,14 +221,14 @@ public class Beweger
             tcp.Y - brickHeight / 2);
 
         // Der Stein dreht sich mit dem Roboter.
-        brick.Angle = rotation + dockWinkelOffset;
+        brick.Angle = angle + dockWinkelOffset;
     }
     public bool Kontakt(Beweger objekt)
     {
         if (objekt is not LegoBrick brick || brick.Status != Parameters.BrickStatus.Moving)
             return false;
 
-        Point tcp = Greifpunkt(Location, rotation);
+        Point tcp = Greifpunkt(Location, angle);
 
         int brickWidth = brick.Size == Parameters.LegoSize.large
             ? BigBrickWidth
@@ -459,7 +457,7 @@ public class Beweger
 
     public bool AufDeliveryLinie()
     {
-        Point tcp = Greifpunkt(Location, rotation);
+        Point tcp = Greifpunkt(Location, angle);
 
         Rectangle deliveryBounds = new Rectangle(
             ViewParameters.ProductionLinePoseDelivery.X,
@@ -468,5 +466,16 @@ public class Beweger
             ViewParameters.DeliveryLineHeight);
 
         return deliveryBounds.Contains(tcp);
+    }
+
+    // Setzt Position und Ausrichtung direkt.
+    // Wird für die automatische Positionierung des Roboters verwendet.
+    public void SetzePose(Pose pose)
+    {
+        Location = pose.Location;
+        Angle = pose.Angle;
+
+        // Einen eventuell aufgenommenen Brick mitbewegen.
+        DockobjektNachziehen();
     }
 }

@@ -47,4 +47,5 @@ public class Parameters
     public const int bricksPerLine = 4;
     public const int timerInterval = 50;        //Timer Interval in ms
     public const int robotTimerInterval = 150;
+    public const int orderSize = 8;
 }

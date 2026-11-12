@@ -75,4 +75,21 @@ public partial class MainWindow : Window
             viewModel.Undock();
         }
     }
+    private void SetupProductionLines_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.SetupProductionLines();
+    }
+    private void Order_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.CreateOrder();
+    }
+    private void GoToLine_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.GoToLine();
+    }
+
+    private void GoToDelivery_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.GoToDelivery();
+    }
 }
