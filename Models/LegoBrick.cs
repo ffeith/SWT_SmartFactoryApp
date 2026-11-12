@@ -1,129 +1,205 @@
-using static MyAvaloniaApp.Models.Parameters;
+using System;
 
 namespace MyAvaloniaApp.Models;
 
-// Repräsentiert einen LEGO-Stein in der Fabrik.
+
+// Repräsentiert einen LEGO-Stein innerhalb der SmartFactory.
+// Ein Stein kann auf einer Produktionslinie liegen,
+// vom Roboter getragen oder transportiert werden.
 public class LegoBrick : Beweger
 {
-    // Ursprüngliche Position auf der Produktionslinie.
-    public Pose LegoPose { get; }
+    // Ursprüngliche Position des Steins auf seiner Produktionslinie.
+    // Wird für die Rückkehr nach einer erfolgreichen Lieferung benötigt.
+    private readonly Pose ursprungsPose;
 
-    public LegoColor Color { get; }
-    public LegoSize Size { get; }
-
-    public BrickStatus Status { get; set; } = BrickStatus.Moving;
-
-    // -1 bedeutet, dass der Stein keinen Recyclingplatz belegt.
-    public int RecyclePlatz { get; private set; } = -1;
-
-    // Abstand zur ursprünglichen Position entlang der Produktionslinie.
+    // Bewegung des Steins entlang seiner ursprünglichen Produktionslinie.
     private int versatz;
 
+    // Nummer des belegten Recyclingplatzes.
+    // -1 bedeutet, dass kein Platz belegt ist.
+    private int recyclePlatz = -1;
+
+    // Aktueller Zustand des Steins.
+    private BrickStatus status = BrickStatus.Moving;
+
+
+    // --------------------------------------------------------
+    // Eigenschaften
+    // --------------------------------------------------------
+
+    // Farbe und Größe ändern sich während der Lebensdauer nicht.
+    public LegoColor Color { get; }
+
+    public LegoSize Size { get; }
+
+    // Aktueller Zustand des Steins.
+    public BrickStatus Status
+    {
+        get => status;
+        set => status = value;
+    }
+
+    // Nummer des belegten Recyclingplatzes.
+    public int RecyclePlatz => recyclePlatz;
+
+    // Gibt an, ob der ursprüngliche Bewegungsversatz
+    // wieder ausgeglichen wurde.
     public bool VersatzIstNull => versatz == 0;
 
-    public LegoBrick(Pose pose, LegoColor color, LegoSize size)
+
+    // --------------------------------------------------------
+    // Konstruktor
+    // --------------------------------------------------------
+
+    public LegoBrick(
+        Pose pose,
+        LegoColor color,
+        LegoSize size)
         : base(pose, ViewParameters.Borders)
     {
-        LegoPose = pose;
+        ursprungsPose = pose;
+
         Color = color;
         Size = size;
     }
 
-    // Wird aufgerufen, wenn der Roboter den Stein aufnimmt.
-    public void Andocken()
-    {
-        Status = BrickStatus.Docked;
-        RecyclePlatz = -1;
-    }
 
-    // Normale manuelle Bewegung eines Steins.
+    // --------------------------------------------------------
+    // Bewegung
+    // --------------------------------------------------------
+
+    // Normale Bewegung des Steins.
+    // Angedockte Steine und Steine auf Recyclingplätzen
+    // dürfen nicht unabhängig bewegt werden.
     public override void Bewegen(Direction direction)
     {
-        if (Status == BrickStatus.Docked || RecyclePlatz >= 0)
+        if (Status == BrickStatus.Docked || recyclePlatz >= 0)
             return;
 
         base.Bewegen(direction);
     }
 
-    // Verfolgt die Bewegung der ursprünglichen Produktionslinie.
+
+    // Bewegung durch das Förderband.
+    //
+    // Der Versatz wird auch dann aktualisiert, wenn der Stein
+    // gerade transportiert oder vom Roboter getragen wird.
     public override void Bewegen(double deltaX, double deltaY)
     {
-        double lineAngle =
-            LegoPose.Angle * System.Math.PI / 180.0;
+        AktualisiereVersatz(deltaX, deltaY);
 
-        double movementAlongLine =
-            deltaX * System.Math.Cos(lineAngle) +
-            deltaY * System.Math.Sin(lineAngle);
-
-        if (movementAlongLine > 0)
-            versatz++;
-        else if (movementAlongLine < 0)
-            versatz--;
-
-        // Nur Steine auf ihrer normalen Produktionslinie bewegen sich räumlich.
-        if (Status != BrickStatus.Moving || RecyclePlatz >= 0)
+        // Räumlich bewegen sich nur Steine auf normalen
+        // Produktionslinien.
+        if (Status != BrickStatus.Moving || recyclePlatz >= 0)
             return;
 
         base.Bewegen(deltaX, deltaY);
     }
 
+
+    // Berechnet die Bewegung entlang der ursprünglichen Produktionslinie.
+    private void AktualisiereVersatz(double deltaX, double deltaY)
+    {
+        double winkel =
+            ursprungsPose.Angle * Math.PI / 180.0;
+
+        // Bewegung auf die ursprüngliche Linienrichtung projizieren.
+        double bewegungEntlangDerLinie =
+            deltaX * Math.Cos(winkel) +
+            deltaY * Math.Sin(winkel);
+
+        if (bewegungEntlangDerLinie > 0)
+        {
+            versatz++;
+        }
+        else if (bewegungEntlangDerLinie < 0)
+        {
+            versatz--;
+        }
+    }
+
+
+    // --------------------------------------------------------
+    // Transport
+    // --------------------------------------------------------
+
+    // Markiert den Stein für den Transport zum Kunden.
     public void ZumKunden()
     {
         Status = BrickStatus.ToCustomer;
     }
 
+
+    // Markiert den Stein für den Transport zum Recycling.
     public void ZumRecycling()
     {
         Status = BrickStatus.ToRecycle;
     }
 
-    // Transportiert den Stein horizontal in Richtung Kunde.
+
+    // Bewegt einen akzeptierten Stein horizontal zum Kunden.
     public void BewegenZumKunden()
     {
-        if (Status == BrickStatus.ToCustomer)
-        {
-            base.Bewegen(Parameters.step, 0);
-        }
+        if (Status != BrickStatus.ToCustomer)
+            return;
+
+        base.Bewegen(Parameters.step, 0);
     }
 
-    // Transportiert den Stein horizontal in Richtung Recyclinglinie.
+
+    // Bewegt einen abgelehnten Stein horizontal zur Recyclinglinie.
     public void BewegenZumRecycling()
     {
-        if (Status == BrickStatus.ToRecycle)
-        {
-            base.Bewegen(-Parameters.step, 0);
-        }
+        if (Status != BrickStatus.ToRecycle)
+            return;
+
+        base.Bewegen(-Parameters.step, 0);
     }
 
-    // Setzt den Stein an seine ursprüngliche Position zurück.
+
+    // --------------------------------------------------------
+    // Recyclingplatz
+    // --------------------------------------------------------
+
+    // Legt den Stein auf einem freien Recyclingplatz ab.
+    public void AufRecyclePlatz(Pose pose, int platz)
+    {
+        if (platz < 0 || platz >= Parameters.bricksPerLine)
+            return;
+
+        SetzePose(pose);
+
+        recyclePlatz = platz;
+        Status = BrickStatus.Moving;
+    }
+
+
+    // --------------------------------------------------------
+    // Andocken
+    // --------------------------------------------------------
+
+    // Wird aufgerufen, wenn der Roboter den Stein aufnimmt.
+    public void Andocken()
+    {
+        Status = BrickStatus.Docked;
+
+        // Der aufgenommene Stein belegt keinen Recyclingplatz mehr.
+        recyclePlatz = -1;
+    }
+
+
+    // --------------------------------------------------------
+    // Zurücksetzen
+    // --------------------------------------------------------
+
+    // Setzt den Stein nach erfolgreicher Lieferung
+    // auf seine ursprüngliche Produktionsposition zurück.
     public void ZurueckZurProduktionslinie()
     {
-        base.Bewegen(
-            LegoPose.X - X,
-            LegoPose.Y - Y);
+        SetzePose(ursprungsPose);
 
-        Pose = LegoPose;
-
-        RecyclePlatz = -1;
         versatz = 0;
+        recyclePlatz = -1;
         Status = BrickStatus.Moving;
-    }
-
-    // Legt einen abgelehnten Stein auf einem Recyclingplatz ab.
-    public void AufRecyclePlatz(Pose recyclePose, int platz)
-    {
-        base.Bewegen(
-            recyclePose.X - X,
-            recyclePose.Y - Y);
-
-        Pose = recyclePose;
-
-        RecyclePlatz = platz;
-        Status = BrickStatus.Moving;
-    }
-
-    public override string ToString()
-    {
-        return $"{Color} {Size}";
     }
 }

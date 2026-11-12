@@ -4,97 +4,102 @@ using System.Drawing;
 
 namespace MyAvaloniaApp.Models;
 
-// Beweger ist die gemeinsame Basisklasse für Roboter und LEGO-Steine.
-// Sie enthält Funktionen für Bewegung, Drehung, Kollisionen und Andocken.
+
+// Basisklasse für Roboter und LEGO-Steine.
+// Enthält gemeinsame Funktionen für Bewegung, Drehung,
+// Kollisionen und das Andocken.
 public class Beweger
 {
-    // Aktuelle Position und Ausrichtung des Objekts.
+    // --------------------------------------------------------
+    // Felder
+    // --------------------------------------------------------
+
+    // Zentrale Beschreibung der aktuellen Position.
     private Pose pose;
 
-    // Bereich, in dem sich das Objekt befinden darf.
-    private Rectangle borders;
+    // Einzelne Bestandteile der aktuellen Pose.
+    private int x;
+    private int y;
+    private int angle;
 
-    // Objekt, das aktuell an diesem Beweger angedockt ist.
-    // Beim Roboter ist das normalerweise ein LEGO-Stein.
+    // Bereich, innerhalb dessen sich das Objekt bewegen darf.
+    private readonly Rectangle borders;
+
+    // Aktuell angedocktes Objekt.
     private Beweger? dockobjekt;
 
-    // Winkel zwischen der ursprünglichen Ausrichtung des Steins
-    // und der aktuellen Ausrichtung des Roboters.
-    // Dadurch behält der Stein beim Tragen seine relative Ausrichtung.
+    // Winkelunterschied zwischen Roboter und getragenem Stein.
     private int dockWinkelOffset;
 
-    // Produktionslinien, die bei der Bewegung Hindernisse darstellen.
+    // Linien, die bei der Bewegung als Hindernisse gelten.
     private readonly IReadOnlyList<ProductionLine> productionLines;
 
     // Linien, an denen der Roboter Steine aufnehmen darf.
     private readonly IReadOnlyList<ProductionLine> dockLines;
 
-    // Zusätzlicher Bereich um eine Linie, in dem Andocken erlaubt ist.
+    // Zusätzlicher erlaubter Abstand zu einer Docklinie.
     private const int LinienToleranz = 25;
 
-    // Maximaler Abstand zwischen Greifpunkt und Steinmittelpunkt,
-    // damit ein Stein aufgenommen werden kann.
+    // Maximaler Abstand zwischen Greifpunkt und Steinmittelpunkt.
     private const int GreifToleranz = 10;
 
+    // Abmessungen des Roboters.
+    private readonly int RobotWidth = ViewParameters.RobotWidth;
+    private readonly int RobotHeight = ViewParameters.RobotHeight;
 
-    // ------------------------------------------------------------
+
+    // --------------------------------------------------------
     // Eigenschaften
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
 
     // Position und Ausrichtung des Objekts.
     public Pose Pose
     {
         get => pose;
-        set => pose = value;
+        set => SetzePose(value);
     }
 
-    // Position ohne Ausrichtung.
-    // Wird die Position verändert, bleibt der bisherige Winkel erhalten.
+    // Position ohne Drehwinkel.
     public Point Location
     {
-        get => pose.Location;
-        set => pose = new Pose(value.X, value.Y, pose.Angle);
+        get => new(x, y);
+        set => SetzePose(new Pose(value.X, value.Y, angle));
     }
 
-    // X- und Y-Koordinate der aktuellen Position.
-    public int X => pose.X;
-    public int Y => pose.Y;
+    public int X => x;
 
-    // Aktueller Drehwinkel in Grad.
+    public int Y => y;
+
+    // Aktueller Drehwinkel.
     public int Angle
     {
-        get => pose.Angle;
-        set => pose = new Pose(pose.X, pose.Y, value);
+        get => angle;
+        set => SetzePose(new Pose(x, y, value));
     }
 
-    // Erlaubter Bewegungsbereich.
-    public Rectangle Borders
-    {
-        get => borders;
-        set => borders = value;
-    }
+    // Bewegungsgrenzen des Objekts.
+    public Rectangle Borders => borders;
 
-    // Gibt das aktuell angedockte Objekt zurück.
-    // Wenn nichts angedockt ist, ist der Wert null.
+    // Aktuell angedocktes Objekt.
     public Beweger? Dockobjekt => dockobjekt;
 
 
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
     // Konstruktoren
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
 
-    // Konstruktor mit Position und Bewegungsgrenzen.
-    // Es werden keine Produktions- oder Docklinien übergeben.
-    public Beweger(Point location, Rectangle borders)
+    // Erstellt einen Beweger mit Standardposition.
+    public Beweger()
         : this(
-            new Pose(location.X, location.Y, 0),
-            borders,
+            new Pose(),
+            ViewParameters.Borders,
             Array.Empty<ProductionLine>(),
             Array.Empty<ProductionLine>())
     {
     }
 
-    // Konstruktor mit Position, Bewegungsgrenzen und Linien.
+
+    // Erstellt einen Beweger mit Position, Grenzen und Linien.
     public Beweger(
         Point location,
         Rectangle borders,
@@ -108,7 +113,8 @@ public class Beweger
     {
     }
 
-    // Konstruktor mit vollständiger Pose und Bewegungsgrenzen.
+
+    // Erstellt einen Beweger mit Pose und Bewegungsgrenzen.
     public Beweger(Pose pose, Rectangle borders)
         : this(
             pose,
@@ -118,125 +124,133 @@ public class Beweger
     {
     }
 
-    // Hauptkonstruktor.
-    // Hier werden alle benötigten Informationen gespeichert.
+
+    // Hauptkonstruktor mit allen benötigten Einstellungen.
     public Beweger(
         Pose pose,
         Rectangle borders,
         IReadOnlyList<ProductionLine> productionLines,
         IReadOnlyList<ProductionLine> dockLines)
     {
-        this.pose = pose;
         this.borders = borders;
-        this.productionLines = productionLines;
-        this.dockLines = dockLines;
+
+        this.productionLines =
+            productionLines ?? throw new ArgumentNullException(nameof(productionLines));
+
+        this.dockLines =
+            dockLines ?? throw new ArgumentNullException(nameof(dockLines));
+
+        SetzePose(pose);
     }
 
 
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
     // Bewegung
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
 
-    // Bewegt das Objekt abhängig von seiner aktuellen Ausrichtung.
-    public virtual void Bewegen(Parameters.Direction direction)
+    // Bewegt das Objekt abhängig von seiner Ausrichtung.
+    public virtual void Bewegen(Direction direction)
     {
-        // Drehbefehle werden separat behandelt.
-        if (direction == Parameters.Direction.turnLeft ||
-            direction == Parameters.Direction.turnRight ||
-            direction == Parameters.Direction.zeroDegrees)
+        // Drehbefehle werden separat verarbeitet.
+        if (direction == Direction.turnLeft ||
+            direction == Direction.turnRight ||
+            direction == Direction.zeroDegrees)
         {
             Drehen(direction);
             return;
         }
 
-        // Der Winkel muss für die Berechnung in Radiant umgerechnet werden.
-        double winkelInRadiant = Angle * Math.PI / 180.0;
+        double winkel = Angle * Math.PI / 180.0;
 
         double deltaX;
         double deltaY;
 
-        // Berechnet, wie weit das Objekt in X- und Y-Richtung bewegt wird.
+        // Verschiebung für die gewünschte Richtung berechnen.
         switch (direction)
         {
-            case Parameters.Direction.up:
-                deltaX = Math.Sin(winkelInRadiant) * Parameters.step;
-                deltaY = -Math.Cos(winkelInRadiant) * Parameters.step;
+            case Direction.up:
+                deltaX = Math.Sin(winkel) * Parameters.step;
+                deltaY = -Math.Cos(winkel) * Parameters.step;
                 break;
 
-            case Parameters.Direction.down:
-                deltaX = -Math.Sin(winkelInRadiant) * Parameters.step;
-                deltaY = Math.Cos(winkelInRadiant) * Parameters.step;
+            case Direction.down:
+                deltaX = -Math.Sin(winkel) * Parameters.step;
+                deltaY = Math.Cos(winkel) * Parameters.step;
                 break;
 
-            case Parameters.Direction.left:
-                deltaX = -Math.Cos(winkelInRadiant) * Parameters.step;
-                deltaY = -Math.Sin(winkelInRadiant) * Parameters.step;
+            case Direction.left:
+                deltaX = -Math.Cos(winkel) * Parameters.step;
+                deltaY = -Math.Sin(winkel) * Parameters.step;
                 break;
 
-            case Parameters.Direction.right:
-                deltaX = Math.Cos(winkelInRadiant) * Parameters.step;
-                deltaY = Math.Sin(winkelInRadiant) * Parameters.step;
+            case Direction.right:
+                deltaX = Math.Cos(winkel) * Parameters.step;
+                deltaY = Math.Sin(winkel) * Parameters.step;
                 break;
 
-            // Bei einer unbekannten oder nicht unterstützten Richtung
-            // findet keine Bewegung statt.
             default:
                 return;
         }
 
-        // Berechnet die neue Position.
         Point neuePosition = new(
             Location.X + (int)Math.Round(deltaX),
             Location.Y + (int)Math.Round(deltaY));
 
-        // Für den Roboter müssen zusätzliche Prüfungen durchgeführt werden.
+        Pose neuePose = new(
+            neuePosition.X,
+            neuePosition.Y,
+            Angle);
+
+        // Beim Roboter zusätzlich Hindernisse und
+        // den möglicherweise getragenen Stein berücksichtigen.
         if (this is Robot)
         {
-            Pose neuePose = new(
-                neuePosition.X,
-                neuePosition.Y,
-                Angle);
-
-            // Prüft Grenzen, Hindernisse und gegebenenfalls den getragenen Stein.
             if (!IstRoboterPoseGueltig(neuePose))
                 return;
         }
-        else
+        else if (!borders.Contains(neuePosition))
         {
-            // Bei anderen Objekten genügt die Prüfung der neuen Position.
-            if (!borders.Contains(neuePosition))
-                return;
+            return;
         }
 
-        // Die Bewegung ist erlaubt. Die neue Position wird übernommen.
-        Location = neuePosition;
-
-        // Falls ein Objekt angedockt ist, muss es dem Beweger folgen.
-        DockobjektNachziehen();
+        SetzePose(neuePose);
     }
 
 
-    // ------------------------------------------------------------
+    // Bewegt das Objekt um eine frei angegebene Strecke.
+    //
+    // Wird insbesondere von ProductionLine verwendet,
+    // um LEGO-Steine auf dem Förderband zu bewegen.
+    public virtual void Bewegen(double deltaX, double deltaY)
+    {
+        SetzePose(
+            new Pose(
+                x + (int)Math.Round(deltaX),
+                y + (int)Math.Round(deltaY),
+                angle));
+    }
+
+
+    // --------------------------------------------------------
     // Drehung
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
 
     // Verändert den Drehwinkel des Objekts.
-    private void Drehen(Parameters.Direction direction)
+    private void Drehen(Direction direction)
     {
         int neuerWinkel = Angle;
 
         switch (direction)
         {
-            case Parameters.Direction.turnLeft:
+            case Direction.turnLeft:
                 neuerWinkel -= Parameters.rotationStep;
 
-                // Verhindert Winkelwerte außerhalb des Bereichs.
                 if (neuerWinkel <= -360)
                     neuerWinkel += 360;
 
                 break;
 
-            case Parameters.Direction.turnRight:
+            case Direction.turnRight:
                 neuerWinkel += Parameters.rotationStep;
 
                 if (neuerWinkel >= 360)
@@ -244,7 +258,7 @@ public class Beweger
 
                 break;
 
-            case Parameters.Direction.zeroDegrees:
+            case Direction.zeroDegrees:
                 neuerWinkel = 0;
                 break;
 
@@ -252,73 +266,37 @@ public class Beweger
                 return;
         }
 
-        // Beim Roboter muss auch die neue Ausrichtung geprüft werden.
-        // Eine Drehung ist beispielsweise nicht erlaubt, wenn dadurch
-        // ein Teil des Roboters außerhalb der Fabrik liegen würde.
-        if (this is Robot)
-        {
-            Pose neuePose = new(X, Y, neuerWinkel);
+        Pose neuePose = new(X, Y, neuerWinkel);
 
-            if (!IstRoboterPoseGueltig(neuePose))
-                return;
-        }
+        // Vor der Drehung prüfen, ob die neue Ausrichtung
+        // für den Roboter und einen getragenen Stein erlaubt ist.
+        if (this is Robot && !IstRoboterPoseGueltig(neuePose))
+            return;
 
-        // Die Drehung ist erlaubt.
-        Angle = neuerWinkel;
-
-        // Ein angedockter Stein übernimmt die neue Ausrichtung.
-        DockobjektNachziehen();
+        SetzePose(neuePose);
     }
 
 
-    // ------------------------------------------------------------
-    // Freie Bewegung
-    // ------------------------------------------------------------
-
-    // Bewegt das Objekt um eine frei angegebene Strecke.
-    //
-    // Diese Methode wird beispielsweise von den Produktionslinien
-    // verwendet, um LEGO-Steine mit dem Förderband zu bewegen.
-    //
-    // Anders als bei Bewegen(Direction) werden hier keine
-    // Bewegungsgrenzen oder Hindernisse geprüft.
-    public virtual void Bewegen(double deltaX, double deltaY)
-    {
-        Location = new Point(
-            Location.X + (int)Math.Round(deltaX),
-            Location.Y + (int)Math.Round(deltaY));
-    }
-
-
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
     // Greifpunkt und Andocken
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
 
-    // Berechnet den Greifpunkt (TCP) an der Vorderseite des Roboters.
-    //
-    // Der Greifpunkt befindet sich in der Mitte der Vorderseite.
-    // Er wird abhängig vom Drehwinkel des Roboters berechnet.
-    private static Point Greifpunkt(Point robotLocation, int robotAngle)
+    // Berechnet den Greifpunkt an der Vorderseite des Roboters.
+    private Point Greifpunkt(Point robotLocation, int robotAngle)
     {
-        double winkelInRadiant = robotAngle * Math.PI / 180.0;
+        double winkel = robotAngle * Math.PI / 180.0;
 
-        // Mittelpunkt des Roboters.
-        double centerX =
-            robotLocation.X + ViewParameters.RobotWidth / 2.0;
+        double mitteX =
+            robotLocation.X + RobotWidth / 2.0;
 
-        double centerY =
-            robotLocation.Y + ViewParameters.RobotHeight / 2.0;
+        double mitteY =
+            robotLocation.Y + RobotHeight / 2.0;
 
-        // Position des Greifpunkts vor dem Roboter.
         double tcpX =
-            centerX +
-            ViewParameters.RobotHeight / 2.0 *
-            Math.Sin(winkelInRadiant);
+            mitteX + RobotHeight / 2.0 * Math.Sin(winkel);
 
         double tcpY =
-            centerY -
-            ViewParameters.RobotHeight / 2.0 *
-            Math.Cos(winkelInRadiant);
+            mitteY - RobotHeight / 2.0 * Math.Cos(winkel);
 
         return new Point(
             (int)Math.Round(tcpX),
@@ -326,109 +304,99 @@ public class Beweger
     }
 
 
+    // Ermittelt die Abmessungen eines LEGO-Steins.
+    private static Size ErmittleSteingroesse(LegoBrick brick)
+    {
+        if (brick.Size == LegoSize.large)
+        {
+            return new Size(
+                ViewParameters.BigBrickWidth,
+                ViewParameters.BigBrickHeight);
+        }
+
+        return new Size(
+            ViewParameters.SmallBrickWidth,
+            ViewParameters.SmallBrickHeight);
+    }
+
+
     // Aktualisiert die Position eines angedockten LEGO-Steins.
-    //
-    // Diese Methode wird nach jeder Bewegung und Drehung des Roboters
-    // aufgerufen. Dadurch bleibt der Stein am Greifpunkt befestigt.
     private void DockobjektNachziehen()
     {
         if (dockobjekt is not LegoBrick brick)
             return;
 
-        // Größe des LEGO-Steins bestimmen.
-        int brickWidth = brick.Size == Parameters.LegoSize.large
-            ? ViewParameters.BigBrickWidth
-            : ViewParameters.SmallBrickWidth;
+        Size steingroesse = ErmittleSteingroesse(brick);
 
-        int brickHeight = brick.Size == Parameters.LegoSize.large
-            ? ViewParameters.BigBrickHeight
-            : ViewParameters.SmallBrickHeight;
-
-        // Aktuelle Position des Greifpunkts berechnen.
         Point tcp = Greifpunkt(Location, Angle);
 
-        // Der Mittelpunkt des Steins soll auf dem Greifpunkt liegen.
+        // Den Mittelpunkt des Steins auf den Greifpunkt setzen.
         brick.Location = new Point(
-            tcp.X - brickWidth / 2,
-            tcp.Y - brickHeight / 2);
+            tcp.X - steingroesse.Width / 2,
+            tcp.Y - steingroesse.Height / 2);
 
-        // Auch die Ausrichtung des Steins wird aktualisiert.
-        // Der gespeicherte Winkelversatz bleibt dabei erhalten.
+        // Den Winkelunterschied zwischen Roboter und Stein beachten.
         brick.Angle = Angle + dockWinkelOffset;
     }
 
 
     // Versucht, einen LEGO-Stein aufzunehmen.
-    //
-    // Die Methode liefert true zurück, wenn das Andocken erfolgreich war.
+    // Gibt true zurück, wenn das Andocken erfolgreich war.
     public bool Kontakt(Beweger objekt)
     {
-        // Es dürfen nur LEGO-Steine aufgenommen werden.
+        // Nur LEGO-Steine dürfen aufgenommen werden.
         if (objekt is not LegoBrick brick)
             return false;
 
-        // Der Stein muss sich auf einer Linie bewegen.
-        if (brick.Status != Parameters.BrickStatus.Moving)
+        // Der Stein muss beweglich sein.
+        // Außerdem darf kein anderes Objekt angedockt sein.
+        if (brick.Status != BrickStatus.Moving ||
+            dockobjekt != null)
+        {
             return false;
+        }
 
-        // Ein Beweger kann immer nur ein Objekt gleichzeitig tragen.
-        if (dockobjekt != null)
-            return false;
-
-        // Der Greifpunkt muss sich in der Nähe einer erlaubten Docklinie befinden.
+        // Der Greifpunkt muss sich in der Nähe einer Docklinie befinden.
         if (!AufDockLinie())
             return false;
 
-        // Position des Greifpunkts berechnen.
         Point tcp = Greifpunkt(Location, Angle);
 
-        // Größe des Steins bestimmen.
-        int brickWidth = brick.Size == Parameters.LegoSize.large
-            ? ViewParameters.BigBrickWidth
-            : ViewParameters.SmallBrickWidth;
+        Size steingroesse = ErmittleSteingroesse(brick);
 
-        int brickHeight = brick.Size == Parameters.LegoSize.large
-            ? ViewParameters.BigBrickHeight
-            : ViewParameters.SmallBrickHeight;
+        // Mittelpunkt des Steins berechnen.
+        Point steinMitte = new(
+            brick.Location.X + steingroesse.Width / 2,
+            brick.Location.Y + steingroesse.Height / 2);
 
-        // Mittelpunkt des LEGO-Steins berechnen.
-        Point brickCenter = new(
-            brick.Location.X + brickWidth / 2,
-            brick.Location.Y + brickHeight / 2);
-
-        // Prüfen, ob Greifpunkt und Steinmittelpunkt nah genug beieinander liegen.
+        // Abstand zum Greifpunkt prüfen.
         bool nahGenug =
-            Math.Abs(tcp.X - brickCenter.X) <= GreifToleranz &&
-            Math.Abs(tcp.Y - brickCenter.Y) <= GreifToleranz;
+            Math.Abs(tcp.X - steinMitte.X) <= GreifToleranz &&
+            Math.Abs(tcp.Y - steinMitte.Y) <= GreifToleranz;
 
         if (!nahGenug)
             return false;
 
-        // Winkelunterschied zwischen Roboter und Stein speichern.
-        // So kann der Stein beim Tragen seine relative Ausrichtung behalten.
+        // Winkelunterschied speichern.
         dockWinkelOffset = brick.Angle - Angle;
 
-        // Stein als angedockt markieren.
         brick.Andocken();
 
-        // Verbindung zwischen Roboter und Stein herstellen.
         dockobjekt = brick;
 
-        // Stein direkt an den Greifpunkt setzen.
         DockobjektNachziehen();
 
         return true;
     }
 
 
-    // ------------------------------------------------------------
-    // Prüfung der Docklinien
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
+    // Docklinien
+    // --------------------------------------------------------
 
-    // Prüft, ob sich ein Punkt innerhalb oder nahe an einer Linie befindet.
+    // Prüft, ob ein Punkt innerhalb oder nahe einer Linie liegt.
     //
-    // Die Linie kann gedreht sein. Deshalb wird der Punkt zuerst
-    // in das lokale Koordinatensystem der Linie umgerechnet.
+    // Die Ausrichtung der Linie wird berücksichtigt.
     private static bool AufLinie(
         Point point,
         Pose linePose,
@@ -436,61 +404,69 @@ public class Beweger
         double lineHeight,
         double tolerance)
     {
-        double winkelInRadiant = linePose.Angle * Math.PI / 180.0;
+        double winkel = linePose.Angle * Math.PI / 180.0;
 
-        // Mittelpunkt der Linie.
-        double centerX = linePose.X + lineWidth / 2.0;
-        double centerY = linePose.Y + lineHeight / 2.0;
+        double mitteX = linePose.X + lineWidth / 2.0;
+        double mitteY = linePose.Y + lineHeight / 2.0;
 
-        // Abstand des Punktes zum Linienmittelpunkt.
-        double deltaX = point.X - centerX;
-        double deltaY = point.Y - centerY;
+        double deltaX = point.X - mitteX;
+        double deltaY = point.Y - mitteY;
 
-        // Umrechnung in das lokale Koordinatensystem der Linie.
-        // Die Rotation erfolgt mit dem negativen Linienwinkel.
+        // Punkt in das lokale Koordinatensystem der Linie umrechnen.
         double localX =
-            deltaX * Math.Cos(winkelInRadiant) +
-            deltaY * Math.Sin(winkelInRadiant);
+            deltaX * Math.Cos(winkel) +
+            deltaY * Math.Sin(winkel);
 
         double localY =
-            -deltaX * Math.Sin(winkelInRadiant) +
-            deltaY * Math.Cos(winkelInRadiant);
+            -deltaX * Math.Sin(winkel) +
+            deltaY * Math.Cos(winkel);
 
-        // Der Punkt muss innerhalb der halben Linienbreite und -höhe liegen.
-        // Die Toleranz vergrößert den erlaubten Bereich.
         return
             Math.Abs(localX) <= lineWidth / 2.0 + tolerance &&
             Math.Abs(localY) <= lineHeight / 2.0 + tolerance;
     }
 
 
-    // Prüft, ob sich der Greifpunkt in der Nähe einer erlaubten Docklinie befindet.
+    // Gibt die Größe einer Produktionslinie zurück.
+    // Die Delivery Line hat eigene Abmessungen.
+    private static Size ErmittleLiniengroesse(ProductionLine line)
+    {
+        if (IstDeliveryLine(line))
+        {
+            return new Size(
+                ViewParameters.ProductionDeliveryWidth,
+                ViewParameters.ProductionDeliveryHeight);
+        }
+
+        return new Size(
+            ViewParameters.ProductionLineWidth,
+            ViewParameters.ProductionLineHeight);
+    }
+
+
+    // Prüft, ob eine Linie die Delivery Line ist.
+    private static bool IstDeliveryLine(ProductionLine line)
+    {
+        return
+            line.Pose.X == ViewParameters.RectDeliveryPose.X &&
+            line.Pose.Y == ViewParameters.RectDeliveryPose.Y;
+    }
+
+
+    // Prüft, ob der Greifpunkt in der Nähe einer erlaubten Docklinie liegt.
     private bool AufDockLinie()
     {
         Point tcp = Greifpunkt(Location, Angle);
 
         foreach (ProductionLine line in dockLines)
         {
-            // Die Delivery Line hat andere Abmessungen als die Produktionslinien.
-            bool istDeliveryLine =
-                line.ProductionLinePose.X ==
-                ViewParameters.ProductionLinePoseDelivery.X &&
-                line.ProductionLinePose.Y ==
-                ViewParameters.ProductionLinePoseDelivery.Y;
-
-            double width = istDeliveryLine
-                ? ViewParameters.DeliveryLineWidth
-                : ViewParameters.ProductionLineWidth;
-
-            double height = istDeliveryLine
-                ? ViewParameters.DeliveryLineHeight
-                : ViewParameters.ProductionLineHeight;
+            Size liniengroesse = ErmittleLiniengroesse(line);
 
             if (AufLinie(
                 tcp,
-                line.ProductionLinePose,
-                width,
-                height,
+                line.Pose,
+                liniengroesse.Width,
+                liniengroesse.Height,
                 LinienToleranz))
             {
                 return true;
@@ -501,67 +477,31 @@ public class Beweger
     }
 
 
-    // Prüft, ob der Greifpunkt direkt auf der Delivery Line liegt.
-    //
-    // Anders als bei der normalen Aufnahme wird hier keine zusätzliche
-    // Toleranz verwendet. Der Stein darf nur auf der Delivery Line
-    // abgesetzt werden.
+    // Prüft, ob der Greifpunkt auf der Delivery Line liegt.
     public bool AufDeliveryLinie()
     {
-        Point tcp = Greifpunkt(Location, Angle);
-
         return AufLinie(
-            tcp,
-            ViewParameters.ProductionLinePoseDelivery,
-            ViewParameters.DeliveryLineWidth,
-            ViewParameters.DeliveryLineHeight,
+            Greifpunkt(Location, Angle),
+            ViewParameters.RectDeliveryPose,
+            ViewParameters.ProductionDeliveryWidth,
+            ViewParameters.ProductionDeliveryHeight,
             0);
     }
 
 
-    // ------------------------------------------------------------
-    // Grenzen des getragenen Objekts
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
+    // Bewegungsgrenzen
+    // --------------------------------------------------------
 
-    // Prüft, ob der getragene Stein bei einer geplanten Bewegung
-    // vollständig innerhalb der Fabrikgrenzen bleibt.
-    private bool DockobjektInnerhalbGrenzen(
-        Point robotPosition,
-        int robotAngle)
+    // Prüft, ob alle Ecken eines Rechtecks innerhalb
+    // der Fabrikgrenzen liegen.
+    private bool EckenInnerhalbGrenzen(PointF[] ecken)
     {
-        if (dockobjekt is not LegoBrick brick)
-            return true;
-
-        int brickWidth = brick.Size == Parameters.LegoSize.large
-            ? ViewParameters.BigBrickWidth
-            : ViewParameters.SmallBrickWidth;
-
-        int brickHeight = brick.Size == Parameters.LegoSize.large
-            ? ViewParameters.BigBrickHeight
-            : ViewParameters.SmallBrickHeight;
-
-        // Position des Greifpunkts für die geplante Roboterposition.
-        Point tcp = Greifpunkt(robotPosition, robotAngle);
-
-        // Geplante Position des Steins.
-        Point brickLocation = new(
-            tcp.X - brickWidth / 2,
-            tcp.Y - brickHeight / 2);
-
-        // Die vier Ecken des gedrehten Steins berechnen.
-        PointF[] corners = RotatedCorners(
-            brickLocation,
-            robotAngle + dockWinkelOffset,
-            brickWidth,
-            brickHeight);
-
-        // Jede Ecke muss innerhalb der Fabrikgrenzen liegen.
-        foreach (PointF corner in corners)
+        foreach (PointF ecke in ecken)
         {
-            if (corner.X < borders.Left ||
-                corner.Y < borders.Top ||
-                corner.X >= borders.Right ||
-                corner.Y >= borders.Bottom)
+            if (!borders.Contains(
+                (int)Math.Floor(ecke.X),
+                (int)Math.Floor(ecke.Y)))
             {
                 return false;
             }
@@ -571,23 +511,47 @@ public class Beweger
     }
 
 
-    // ------------------------------------------------------------
-    // Andocken lösen
-    // ------------------------------------------------------------
+    // Prüft, ob ein getragener LEGO-Stein innerhalb
+    // der Fabrikgrenzen bleibt.
+    private bool DockobjektInnerhalbGrenzen(
+        Point robotPosition,
+        int robotAngle)
+    {
+        if (dockobjekt is not LegoBrick brick)
+            return true;
+
+        Size steingroesse = ErmittleSteingroesse(brick);
+
+        Point tcp = Greifpunkt(robotPosition, robotAngle);
+
+        Point steinPosition = new(
+            tcp.X - steingroesse.Width / 2,
+            tcp.Y - steingroesse.Height / 2);
+
+        // Eckpunkte des gedrehten Steins berechnen.
+        PointF[] steinEcken = RotatedCorners(
+            steinPosition,
+            robotAngle + dockWinkelOffset,
+            steingroesse.Width,
+            steingroesse.Height);
+
+        return EckenInnerhalbGrenzen(steinEcken);
+    }
+
+
+    // --------------------------------------------------------
+    // Undocken
+    // --------------------------------------------------------
 
     // Löst die Verbindung zwischen Roboter und LEGO-Stein.
-    //
-    // Gibt den zuvor getragenen Stein zurück.
-    // Wenn kein Stein angedockt ist, wird null zurückgegeben.
+    // Gibt den Stein zurück oder null, wenn keiner angedockt ist.
     public LegoBrick? Undock()
     {
         if (dockobjekt is not LegoBrick brick)
             return null;
 
-        // Der Stein kann sich anschließend wieder normal bewegen.
-        brick.Status = Parameters.BrickStatus.Moving;
+        brick.Status = BrickStatus.Moving;
 
-        // Verbindung und Winkelversatz zurücksetzen.
         dockobjekt = null;
         dockWinkelOffset = 0;
 
@@ -595,61 +559,48 @@ public class Beweger
     }
 
 
-    // ------------------------------------------------------------
-    // Position direkt setzen
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
+    // Pose setzen
+    // --------------------------------------------------------
 
-    // Setzt Position und Ausrichtung direkt.
+    // Setzt Position und Ausrichtung gleichzeitig.
     //
-    // Diese Methode wird beispielsweise verwendet, wenn der Roboter
-    // automatisch vor einer Produktionslinie positioniert wird.
+    // Die einzelnen Koordinaten werden dabei synchronisiert.
+    // Ein angedockter Stein wird anschließend nachgezogen.
     public void SetzePose(Pose newPose)
     {
         pose = newPose;
 
-        // Ein angedockter Stein muss ebenfalls an die neue Position.
+        x = newPose.X;
+        y = newPose.Y;
+        angle = newPose.Angle;
+
         DockobjektNachziehen();
     }
 
 
-    // ------------------------------------------------------------
-    // Prüfung der Roboterbewegung
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
+    // Roboter-Kollisionen
+    // --------------------------------------------------------
 
-    // Prüft, ob eine geplante Roboterposition gültig ist.
-    //
-    // Dabei werden drei Dinge geprüft:
-    // 1. Der Roboter muss vollständig innerhalb der Fabrik bleiben.
-    // 2. Der Roboter darf keine Produktionslinie berühren.
-    // 3. Ein getragener Stein muss ebenfalls innerhalb der Grenzen bleiben.
-    //
-    // Die Methode wird sowohl bei Bewegungen als auch bei Drehungen verwendet.
+    // Prüft, ob eine geplante Roboterposition erlaubt ist.
     private bool IstRoboterPoseGueltig(Pose geplantePose)
     {
-        // Die vier Ecken des Roboters für die geplante Pose berechnen.
-        PointF[] robotCorners = RotatedCorners(
+        PointF[] roboterEcken = RotatedCorners(
             geplantePose.Location,
             geplantePose.Angle,
-            ViewParameters.RobotWidth,
-            ViewParameters.RobotHeight);
+            RobotWidth,
+            RobotHeight);
 
-        // Prüfen, ob alle vier Ecken innerhalb der Fabrikgrenzen liegen.
-        foreach (PointF corner in robotCorners)
-        {
-            if (!borders.Contains(
-                (int)Math.Floor(corner.X),
-                (int)Math.Floor(corner.Y)))
-            {
-                return false;
-            }
-        }
+        // Der gesamte Roboter muss innerhalb der Fabrik liegen.
+        if (!EckenInnerhalbGrenzen(roboterEcken))
+            return false;
 
-        // Prüfen, ob der Roboter eine Produktionslinie berührt.
+        // Der Roboter darf keine Produktionslinie berühren.
         if (KollidiertMitProduktionslinie(geplantePose))
             return false;
 
-        // Falls ein Stein getragen wird, muss auch dieser innerhalb
-        // der Fabrikgrenzen bleiben.
+        // Auch ein getragener Stein muss innerhalb der Grenzen bleiben.
         if (!DockobjektInnerhalbGrenzen(
             geplantePose.Location,
             geplantePose.Angle))
@@ -664,39 +615,23 @@ public class Beweger
     // Prüft, ob der Roboter mit einer Produktionslinie kollidiert.
     private bool KollidiertMitProduktionslinie(Pose robotPose)
     {
-        // Eckpunkte des Roboters berechnen.
-        PointF[] robotCorners = RotatedCorners(
+        PointF[] roboterEcken = RotatedCorners(
             robotPose.Location,
             robotPose.Angle,
-            ViewParameters.RobotWidth,
-            ViewParameters.RobotHeight);
+            RobotWidth,
+            RobotHeight);
 
         foreach (ProductionLine line in productionLines)
         {
-            // Die Delivery Line besitzt eigene Abmessungen.
-            bool istDeliveryLine =
-                line.ProductionLinePose.X ==
-                ViewParameters.ProductionLinePoseDelivery.X &&
-                line.ProductionLinePose.Y ==
-                ViewParameters.ProductionLinePoseDelivery.Y;
+            Size liniengroesse = ErmittleLiniengroesse(line);
 
-            double width = istDeliveryLine
-                ? ViewParameters.DeliveryLineWidth
-                : ViewParameters.ProductionLineWidth;
+            PointF[] linienEcken = RotatedCorners(
+                line.Pose.Location,
+                line.Pose.Angle,
+                liniengroesse.Width,
+                liniengroesse.Height);
 
-            double height = istDeliveryLine
-                ? ViewParameters.DeliveryLineHeight
-                : ViewParameters.ProductionLineHeight;
-
-            // Eckpunkte der aktuellen Produktionslinie berechnen.
-            PointF[] lineCorners = RotatedCorners(
-                line.ProductionLinePose.Location,
-                line.ProductionLinePose.Angle,
-                width,
-                height);
-
-            // Überschneiden sich die beiden Rechtecke?
-            if (RechteckeUeberlappen(robotCorners, lineCorners))
+            if (RechteckeUeberlappen(roboterEcken, linienEcken))
                 return true;
         }
 
@@ -704,13 +639,11 @@ public class Beweger
     }
 
 
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
     // Geometrische Hilfsmethoden
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
 
     // Berechnet die vier Eckpunkte eines gedrehten Rechtecks.
-    //
-    // topLeft ist die Position der linken oberen Ecke vor der Drehung.
     // Die Drehung erfolgt um den Mittelpunkt des Rechtecks.
     private static PointF[] RotatedCorners(
         Point topLeft,
@@ -718,107 +651,93 @@ public class Beweger
         double width,
         double height)
     {
-        double winkelInRadiant = angle * Math.PI / 180.0;
+        double winkel = angle * Math.PI / 180.0;
 
-        // Mittelpunkt des Rechtecks.
-        double centerX = topLeft.X + width / 2.0;
-        double centerY = topLeft.Y + height / 2.0;
+        double mitteX = topLeft.X + width / 2.0;
+        double mitteY = topLeft.Y + height / 2.0;
 
-        double halfWidth = width / 2.0;
-        double halfHeight = height / 2.0;
+        double halbeBreite = width / 2.0;
+        double halbeHoehe = height / 2.0;
 
-        // Sinus und Kosinus werden für die Drehung benötigt.
-        double cos = Math.Cos(winkelInRadiant);
-        double sin = Math.Sin(winkelInRadiant);
+        double cos = Math.Cos(winkel);
+        double sin = Math.Sin(winkel);
 
-        // Dreht einen Punkt um den Mittelpunkt des Rechtecks.
-        PointF Rotate(double x, double y)
+        PointF DrehePunkt(double x, double y)
         {
             return new PointF(
-                (float)(centerX + x * cos - y * sin),
-                (float)(centerY + x * sin + y * cos));
+                (float)(mitteX + x * cos - y * sin),
+                (float)(mitteY + x * sin + y * cos));
         }
 
-        // Die vier Ecken werden relativ zum Mittelpunkt angegeben.
         return new[]
         {
-            Rotate(-halfWidth, -halfHeight),
-            Rotate(halfWidth, -halfHeight),
-            Rotate(halfWidth, halfHeight),
-            Rotate(-halfWidth, halfHeight)
+            DrehePunkt(-halbeBreite, -halbeHoehe),
+            DrehePunkt(halbeBreite, -halbeHoehe),
+            DrehePunkt(halbeBreite, halbeHoehe),
+            DrehePunkt(-halbeBreite, halbeHoehe)
         };
     }
 
 
     // Prüft, ob sich zwei gedrehte Rechtecke überschneiden.
     //
-    // Dafür wird das Separating Axis Theorem (SAT) verwendet.
-    // Es prüft, ob es eine gedachte Trennlinie gibt,
-    // durch die beide Rechtecke voneinander getrennt werden.
+    // Verwendet wird das Separating Axis Theorem (SAT).
     private static bool RechteckeUeberlappen(
-        PointF[] rectangleA,
-        PointF[] rectangleB)
+        PointF[] rechteckA,
+        PointF[] rechteckB)
     {
-        // Gibt es eine Trennachse, überlappen die Rechtecke nicht.
         return
-            !HasSeparatingAxis(rectangleA, rectangleB) &&
-            !HasSeparatingAxis(rectangleB, rectangleA);
+            !GibtEsTrennachse(rechteckA, rechteckB) &&
+            !GibtEsTrennachse(rechteckB, rechteckA);
     }
 
 
-    // Sucht nach einer Trennachse zwischen zwei Rechtecken.
-    //
-    // Eine Trennachse ist eine Richtung, in der die Projektionen
-    // der beiden Rechtecke nicht überlappen.
-    private static bool HasSeparatingAxis(
+    // Prüft, ob zwischen zwei Rechtecken eine Trennachse existiert.
+    private static bool GibtEsTrennachse(
         PointF[] polygon,
-        PointF[] other)
+        PointF[] anderesPolygon)
     {
-        // Jede Rechteckkante liefert eine mögliche Trennachse.
         for (int i = 0; i < polygon.Length; i++)
         {
-            PointF first = polygon[i];
-            PointF second = polygon[(i + 1) % polygon.Length];
+            PointF ersterPunkt = polygon[i];
+            PointF zweiterPunkt = polygon[(i + 1) % polygon.Length];
 
-            // Senkrechte Richtung zur aktuellen Kante berechnen.
-            double axisX = -(second.Y - first.Y);
-            double axisY = second.X - first.X;
+            // Senkrechte zur aktuellen Rechteckkante berechnen.
+            double achseX = -(zweiterPunkt.Y - ersterPunkt.Y);
+            double achseY = zweiterPunkt.X - ersterPunkt.X;
 
-            // Kleinster und größter Projektionswert des ersten Rechtecks.
             double minA = double.PositiveInfinity;
             double maxA = double.NegativeInfinity;
 
-            // Kleinster und größter Projektionswert des zweiten Rechtecks.
             double minB = double.PositiveInfinity;
             double maxB = double.NegativeInfinity;
 
-            // Alle Ecken des ersten Rechtecks auf die Achse projizieren.
-            foreach (PointF point in polygon)
+            // Erstes Rechteck auf die Achse projizieren.
+            foreach (PointF punkt in polygon)
             {
-                double projection =
-                    point.X * axisX + point.Y * axisY;
+                double projektion =
+                    punkt.X * achseX + punkt.Y * achseY;
 
-                minA = Math.Min(minA, projection);
-                maxA = Math.Max(maxA, projection);
+                minA = Math.Min(minA, projektion);
+                maxA = Math.Max(maxA, projektion);
             }
 
-            // Alle Ecken des zweiten Rechtecks auf dieselbe Achse projizieren.
-            foreach (PointF point in other)
+            // Zweites Rechteck auf dieselbe Achse projizieren.
+            foreach (PointF punkt in anderesPolygon)
             {
-                double projection =
-                    point.X * axisX + point.Y * axisY;
+                double projektion =
+                    punkt.X * achseX + punkt.Y * achseY;
 
-                minB = Math.Min(minB, projection);
-                maxB = Math.Max(maxB, projection);
+                minB = Math.Min(minB, projektion);
+                maxB = Math.Max(maxB, projektion);
             }
 
-            // Wenn sich die Projektionsbereiche nicht überschneiden,
-            // sind die Rechtecke voneinander getrennt.
+            // Getrennte Projektionsbereiche bedeuten,
+            // dass sich die Rechtecke nicht überschneiden.
             if (maxA <= minB || maxB <= minA)
                 return true;
         }
 
-        // Es wurde keine Trennachse gefunden.
         return false;
     }
 }

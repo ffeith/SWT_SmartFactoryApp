@@ -1,19 +1,27 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using static MyAvaloniaApp.Models.Parameters;
 
 namespace MyAvaloniaApp.Models;
 
-// Verwaltet die Steine und ihre Bewegung auf einer Produktionslinie.
+
+// Verwaltet die LEGO-Steine einer Produktionslinie
+// und übernimmt die Bewegung des Förderbandes.
 public class ProductionLine
 {
-    private const int StepsPerDirection = 10;
-    private const int BrickSpacing = 24;
-    private const int InsideOffset = 25;
+    // --------------------------------------------------------
+    // Felder
+    // --------------------------------------------------------
 
+    // Position und Ausrichtung der Produktionslinie.
+    private readonly int x;
+    private readonly int y;
+    private readonly int angle;
+
+    // Enthält alle Steine dieser Produktionslinie.
     private readonly List<LegoBrick> bricks = new();
 
+    // Alle möglichen Farben der LEGO-Steine.
     private readonly LegoColor[] alleFarben =
     {
         LegoColor.red,
@@ -22,172 +30,236 @@ public class ProductionLine
         LegoColor.yellow
     };
 
+    // Zufallsgenerator für die Farben der Steine.
     private readonly Random random = new();
 
+    // Anzahl der Bewegungsschritte in eine Richtung.
+    private const int stepsPerDirection = 10;
+
+    // Abstand zwischen zwei LEGO-Steinen.
+    private const int brickSpacing = 24;
+
+    // Abstand der Steinreihe vom Mittelpunkt der Produktionslinie.
+    private const int insideOffset = 25;
+
+    // Referenzwert für die Berechnung der Bewegungsgeschwindigkeit.
+    private const int referenceTimerInterval = 50;
+
+    // Zählt die bisherigen Bewegungsschritte.
     private int tickCount;
+
+    // Verhindert, dass die anfängliche Verschiebung mehrfach erfolgt.
     private bool initialOffsetApplied;
 
-    public Pose ProductionLinePose { get; }
 
-    public Pose Pose => ProductionLinePose;
+    // --------------------------------------------------------
+    // Eigenschaften
+    // --------------------------------------------------------
 
-    public Point Location => ProductionLinePose.Location;
+    // Drehwinkel der Produktionslinie.
+    public int Angle => angle;
 
-    public int Angle => ProductionLinePose.Angle;
+    // Steine dieser Produktionslinie.
+    public IReadOnlyList<LegoBrick> Bricks => bricks;
 
-    public List<LegoBrick> Bricks => bricks;
+    // Position ohne Drehwinkel.
+    public Point Location => new(x, y);
+
+    // Vollständige Position einschließlich Drehwinkel.
+    public Pose Pose => new(x, y, angle);
+
+
+    // --------------------------------------------------------
+    // Konstruktor
+    // --------------------------------------------------------
 
     public ProductionLine(Pose pose)
     {
-        ProductionLinePose = pose;
+        x = pose.X;
+        y = pose.Y;
+        angle = pose.Angle;
     }
 
-    // Erzeugt vier Steine mit unabhängig zufällig gewählter Farbe.
+
+    // --------------------------------------------------------
+    // LEGO-Steine erzeugen
+    // --------------------------------------------------------
+
+    // Erzeugt vier LEGO-Steine mit zufälligen Farben.
     public void CreateBricks()
     {
+        // Eine bereits befüllte Produktionslinie
+        // wird nicht erneut befüllt.
         if (bricks.Count > 0)
             return;
 
-        List<LegoColor> colors = new();
+        double winkel = angle * Math.PI / 180.0;
 
-        for (int i = 0; i < Parameters.bricksPerLine; i++)
-        {
-            int colorIndex = random.Next(alleFarben.Length);
+        // Richtung entlang der Produktionslinie.
+        double richtungX = Math.Cos(winkel);
+        double richtungY = Math.Sin(winkel);
 
-            colors.Add(alleFarben[colorIndex]);
-        }
+        // Senkrechte Richtung zur Produktionslinie.
+        double normalX = -richtungY;
+        double normalY = richtungX;
 
-        CreateBricks(colors);
-    }
 
-    // Erstellt die Steine an ihren vorgesehenen Positionen.
-    private void CreateBricks(IReadOnlyList<LegoColor> colors)
-    {
-        if (colors.Count != Parameters.bricksPerLine)
-        {
-            throw new ArgumentException(
-                $"Expected {Parameters.bricksPerLine} brick colors.");
-        }
+        // Mittelpunkt der Produktionslinie.
+        double linienMitteX =
+            x + ViewParameters.ProductionLineWidth / 2.0;
 
-        double lineAngle =
-            ProductionLinePose.Angle * Math.PI / 180.0;
+        double linienMitteY =
+            y + ViewParameters.ProductionLineHeight / 2.0;
 
-        double directionX = Math.Cos(lineAngle);
-        double directionY = Math.Sin(lineAngle);
 
-        double normalX = -directionY;
-        double normalY = directionX;
-
-        double lineCenterX =
-            ProductionLinePose.X +
-            ViewParameters.ProductionLineWidth / 2.0;
-
-        double lineCenterY =
-            ProductionLinePose.Y +
-            ViewParameters.ProductionLineHeight / 2.0;
-
-        double factoryCenterX =
+        // Mittelpunkt der Fabrik.
+        double fabrikMitteX =
             ViewParameters.Borders.Left +
             ViewParameters.Borders.Width / 2.0;
 
-        double factoryCenterY =
+        double fabrikMitteY =
             ViewParameters.Borders.Top +
             ViewParameters.Borders.Height / 2.0;
 
-        double toFactoryX = factoryCenterX - lineCenterX;
-        double toFactoryY = factoryCenterY - lineCenterY;
 
-        if (normalX * toFactoryX + normalY * toFactoryY < 0)
+        // Bestimmen, auf welcher Seite der Produktionslinie
+        // sich die Mitte der Fabrik befindet.
+        double abstandX = fabrikMitteX - linienMitteX;
+        double abstandY = fabrikMitteY - linienMitteY;
+
+        if (normalX * abstandX + normalY * abstandY < 0)
         {
             normalX = -normalX;
             normalY = -normalY;
         }
 
-        double rowCenterX =
-            lineCenterX + InsideOffset * normalX;
 
-        double rowCenterY =
-            lineCenterY + InsideOffset * normalY;
+        // Mittelpunkt der Reihe berechnen,
+        // in der die LEGO-Steine angeordnet werden.
+        double reihenMitteX =
+            linienMitteX + insideOffset * normalX;
 
+        double reihenMitteY =
+            linienMitteY + insideOffset * normalY;
+
+
+        // Vier Steine mit gleichmäßigem Abstand erzeugen.
         for (int i = 0; i < Parameters.bricksPerLine; i++)
         {
-            double distance =
+            // Abstand des aktuellen Steins von der Reihenmitte.
+            double abstand =
                 (i - (Parameters.bricksPerLine - 1) / 2.0)
-                * BrickSpacing;
+                * brickSpacing;
 
-            double brickCenterX =
-                rowCenterX + distance * directionX;
+            // Mittelpunkt des aktuellen Steins.
+            double steinMitteX =
+                reihenMitteX + abstand * richtungX;
 
-            double brickCenterY =
-                rowCenterY + distance * directionY;
+            double steinMitteY =
+                reihenMitteY + abstand * richtungY;
 
-            int x = (int)Math.Round(
-                brickCenterX - ViewParameters.SmallBrickWidth / 2.0);
 
-            int y = (int)Math.Round(
-                brickCenterY - ViewParameters.SmallBrickHeight / 2.0);
+            // Position der linken oberen Ecke berechnen.
+            int brickX = (int)Math.Round(
+                steinMitteX - ViewParameters.SmallBrickWidth / 2.0);
 
+            int brickY = (int)Math.Round(
+                steinMitteY - ViewParameters.SmallBrickHeight / 2.0);
+
+
+            // Der Stein übernimmt die Ausrichtung seiner Produktionslinie.
             Pose brickPose = new(
-                x,
-                y,
-                ProductionLinePose.Angle);
+                brickX,
+                brickY,
+                angle);
 
+
+            // Für jeden Stein unabhängig eine zufällige Farbe auswählen.
+            LegoColor farbe =
+                alleFarben[random.Next(alleFarben.Length)];
+
+
+            // LEGO-Stein erstellen und der Produktionslinie hinzufügen.
             bricks.Add(new LegoBrick(
                 brickPose,
-                colors[i],
+                farbe,
                 LegoSize.small));
         }
     }
 
-    // Bewegt die Steine gleichmäßig vor und zurück.
+
+    // --------------------------------------------------------
+    // Bewegung des Förderbandes
+    // --------------------------------------------------------
+
+    // Bewegt die Steine regelmäßig vor und zurück.
+    //
+    // directionSign bestimmt die ursprüngliche Bewegungsrichtung:
+    //  1 = positive Richtung
+    // -1 = negative Richtung
     public void Bewegen(int directionSign)
     {
+        // Ohne Steine gibt es nichts zu bewegen.
         if (bricks.Count == 0)
             return;
 
-        double angleRad =
-            ProductionLinePose.Angle * Math.PI / 180.0;
+        double winkel = angle * Math.PI / 180.0;
 
+        // Bewegungsgeschwindigkeit abhängig vom Timer berechnen.
         double timeScale =
-            Parameters.timerInterval / 50.0;
+            (double)Parameters.timerInterval / referenceTimerInterval;
 
         double distance =
             Parameters.step * Math.Sqrt(2) * timeScale;
 
+
+        // Bewegungsstrecke in X- und Y-Richtung.
         double deltaX =
-            Math.Cos(angleRad) * directionSign * distance;
+            Math.Cos(winkel) * directionSign * distance;
 
         double deltaY =
-            Math.Sin(angleRad) * directionSign * distance;
+            Math.Sin(winkel) * directionSign * distance;
 
-        // Anfangsposition der Steine leicht versetzen.
+
+        // Beim ersten Aufruf werden die Steine zunächst
+        // entgegen der normalen Bewegungsrichtung verschoben.
         if (!initialOffsetApplied)
         {
-            int initialSteps = StepsPerDirection / 2;
+            int initialSteps = stepsPerDirection / 2;
 
             for (int i = 0; i < initialSteps; i++)
             {
-                foreach (LegoBrick brick in bricks)
-                {
-                    brick.Bewegen(-deltaX, -deltaY);
-                }
+                BewegeAlleSteine(-deltaX, -deltaY);
             }
 
             initialOffsetApplied = true;
             return;
         }
 
-        bool forward = tickCount < StepsPerDirection;
 
+        // Bestimmen, ob sich die Steine vorwärts oder rückwärts bewegen.
+        bool vorwaerts = tickCount < stepsPerDirection;
+
+        // Bewegungsschritt erhöhen und nach einem vollständigen
+        // Bewegungszyklus wieder bei null beginnen.
         tickCount =
-            (tickCount + 1) % (StepsPerDirection * 2);
+            (tickCount + 1) % (stepsPerDirection * 2);
 
-        if (!forward)
+
+        // Nach zehn Schritten wird die Bewegungsrichtung umgekehrt.
+        if (!vorwaerts)
         {
             deltaX = -deltaX;
             deltaY = -deltaY;
         }
 
+        BewegeAlleSteine(deltaX, deltaY);
+    }
+
+
+    // Bewegt alle Steine dieser Produktionslinie um dieselbe Strecke.
+    private void BewegeAlleSteine(double deltaX, double deltaY)
+    {
         foreach (LegoBrick brick in bricks)
         {
             brick.Bewegen(deltaX, deltaY);

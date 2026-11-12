@@ -1,14 +1,17 @@
-using CommunityToolkit.Mvvm.ComponentModel;
 using Avalonia.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
 using MyAvaloniaApp.Models;
 
 namespace MyAvaloniaApp.ViewModels;
 
-// Stellt einen einzelnen LEGO-Stein in der grafischen Oberfläche dar.
+
+// Stellt einen einzelnen LEGO-Stein in der Oberfläche dar.
 public partial class LegoBrickViewModel : ViewModelBase
 {
+    // Der LEGO-Stein, dessen Darstellung dieses ViewModel übernimmt.
     private LegoBrick? brick;
 
+    // Aktuelle Position und Ausrichtung für die grafische Darstellung.
     [ObservableProperty]
     private double x;
 
@@ -18,45 +21,63 @@ public partial class LegoBrickViewModel : ViewModelBase
     [ObservableProperty]
     private double angle;
 
+
+    // --------------------------------------------------------
+    // Eigenschaften für die grafische Darstellung
+    // --------------------------------------------------------
+
+    // Breite abhängig von der Größe des LEGO-Steins.
     public double Width =>
         brick == null
             ? 0
-            : brick.Size == Parameters.LegoSize.large
+            : brick.Size == LegoSize.large
                 ? ViewParameters.BigBrickWidth
                 : ViewParameters.SmallBrickWidth;
 
+
+    // Höhe abhängig von der Größe des LEGO-Steins.
     public double Height =>
         brick == null
             ? 0
-            : brick.Size == Parameters.LegoSize.large
+            : brick.Size == LegoSize.large
                 ? ViewParameters.BigBrickHeight
                 : ViewParameters.SmallBrickHeight;
 
+
+    // Farbe abhängig von der LEGO-Farbe.
     public IBrush Fill => brick?.Color switch
     {
-        Parameters.LegoColor.red => Brushes.Red,
-        Parameters.LegoColor.blue => Brushes.Blue,
-        Parameters.LegoColor.green => Brushes.Green,
-        Parameters.LegoColor.yellow => Brushes.Yellow,
+        LegoColor.red => Brushes.Red,
+        LegoColor.blue => Brushes.Blue,
+        LegoColor.green => Brushes.Green,
+        LegoColor.yellow => Brushes.Yellow,
         _ => Brushes.Transparent
     };
 
+
+    // Ein Stein ist sichtbar, sobald ein echtes Brick-Objekt zugewiesen wurde.
     public bool IsVisible => brick != null;
+
+
+    // --------------------------------------------------------
+    // Konstruktor
+    // --------------------------------------------------------
 
     public LegoBrickViewModel()
     {
     }
 
-    public LegoBrickViewModel(LegoBrick brick)
-    {
-        SetBrick(brick);
-    }
 
-    // Verknüpft das ViewModel mit einem echten Stein.
+    // --------------------------------------------------------
+    // LEGO-Stein zuweisen
+    // --------------------------------------------------------
+
+    // Verbindet das ViewModel mit einem echten LEGO-Stein.
     public void SetBrick(LegoBrick? newBrick)
     {
         brick = newBrick;
 
+        // Die grafischen Eigenschaften neu berechnen.
         OnPropertyChanged(nameof(Width));
         OnPropertyChanged(nameof(Height));
         OnPropertyChanged(nameof(Fill));
@@ -65,7 +86,13 @@ public partial class LegoBrickViewModel : ViewModelBase
         Refresh();
     }
 
-    // Aktualisiert Position und Ausrichtung.
+
+    // --------------------------------------------------------
+    // Darstellung aktualisieren
+    // --------------------------------------------------------
+
+    // Übernimmt die aktuelle Position und Ausrichtung
+    // des LEGO-Steins in das ViewModel.
     public void Refresh()
     {
         if (brick == null)

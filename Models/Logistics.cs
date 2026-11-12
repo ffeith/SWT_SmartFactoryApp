@@ -1,12 +1,18 @@
 using System;
 using System.Collections.Generic;
-using static MyAvaloniaApp.Models.Parameters;
 
 namespace MyAvaloniaApp.Models;
 
-// Plant den Kundenauftrag und verwaltet den Lieferfortschritt.
+
+// Verwaltet Kundenbestellungen, Qualitätsprüfungen
+// und den Fortschritt der Auslieferung.
 public class Logistics
 {
+    // --------------------------------------------------------
+    // Felder
+    // --------------------------------------------------------
+
+    // Alle verfügbaren LEGO-Farben.
     private readonly LegoColor[] farben =
     {
         LegoColor.red,
@@ -15,184 +21,261 @@ public class Logistics
         LegoColor.yellow
     };
 
+    // Anzahl der erfolgreich gelieferten Steine je Farbe.
     private readonly Dictionary<LegoColor, int> delivered = new();
 
+    // Zufallsgenerator für Bestellung und Qualitätsprüfung.
     private readonly Random random = new();
 
+    // Position des nächsten Steins innerhalb der Bestellung.
     private int naechsterSchritt;
 
+    // Gibt an, ob der Roboter aktuell einen Stein trägt.
     private bool brickPickedUp;
+
+    // Gibt an, ob der aktuelle Stein zuerst recycelt werden muss.
     private bool recycleRequired;
 
+    // Referenz auf den zuletzt abgelehnten Stein.
     private LegoBrick? rejectedBrick;
 
-    // Die Bestellung enthält Referenzen auf ausgewählte Steine.
-    // Mehrfachauswahl ist erlaubt.
-    public List<LegoBrick> Order { get; private set; } = new();
+    // Enthält die zufällig ausgewählten Steine des Auftrags.
+    private readonly List<LegoBrick> order = new();
 
-    public bool HasOrder => Order.Count > 0;
+
+    // --------------------------------------------------------
+    // Eigenschaften
+    // --------------------------------------------------------
+
+    public IReadOnlyList<LegoBrick> Order => order;
+
+    public bool HasOrder => order.Count > 0;
 
     public bool IsComplete =>
-        HasOrder && naechsterSchritt >= Order.Count;
+        HasOrder && naechsterSchritt >= order.Count;
 
     public bool IsBrickPickedUp => brickPickedUp;
 
     public bool IsRecyclingRequired => recycleRequired;
 
-    // Nach einer Ablehnung wird derselbe Stein erneut benötigt.
+    // Nach einer Ablehnung muss derselbe Stein erneut aufgenommen werden.
     public LegoBrick? PickupBrick =>
         recycleRequired ? rejectedBrick : CurrentStep();
+
+
+    // --------------------------------------------------------
+    // Konstruktor
+    // --------------------------------------------------------
 
     public Logistics()
     {
         ResetDeliveryCounters();
     }
 
-    // Erstellt einen zufälligen Auftrag.
-    public void CreateRandomOrder(List<LegoBrick> alleBricks)
+
+    // --------------------------------------------------------
+    // Bestellung erstellen
+    // --------------------------------------------------------
+
+    // Erstellt einen zufälligen Auftrag aus den vorhandenen Steinen.
+    public void CreateRandomOrder(IReadOnlyList<LegoBrick> alleBricks)
     {
-        if (alleBricks == null || alleBricks.Count == 0)
+        if (alleBricks == null)
+            throw new ArgumentNullException(nameof(alleBricks));
+
+        if (alleBricks.Count == 0)
         {
             throw new InvalidOperationException(
                 "Es sind noch keine Produktionssteine vorhanden.");
         }
 
-        Order.Clear();
+        order.Clear();
 
+        // Zustand für den neuen Auftrag zurücksetzen.
         naechsterSchritt = 0;
         brickPickedUp = false;
         recycleRequired = false;
-
         rejectedBrick = null;
 
         ResetDeliveryCounters();
 
-        // Acht unabhängige Ziehungen mit Zurücklegen.
+        // Acht Steine zufällig auswählen.
+        // Da die ausgewählten Steine nicht entfernt werden,
+        // sind Mehrfachauswahlen möglich.
         for (int i = 0; i < Parameters.orderSize; i++)
         {
             int index = random.Next(alleBricks.Count);
-
-            Order.Add(alleBricks[index]);
+            order.Add(alleBricks[index]);
         }
     }
 
-    // Gibt den Stein des aktuellen Auftragsschritts zurück.
+
+    // --------------------------------------------------------
+    // Aktuellen Auftragsschritt bestimmen
+    // --------------------------------------------------------
+
     public LegoBrick? CurrentStep()
     {
         if (!HasOrder || IsComplete)
             return null;
 
-        return Order[naechsterSchritt];
+        return order[naechsterSchritt];
     }
 
-    // Bestimmt die Linie des nächsten Steins.
+
+    // Bestimmt die Produktionslinie des nächsten benötigten Steins.
     public ProductionLine? PickStation(
-        List<ProductionLine> productionLines,
+        IReadOnlyList<ProductionLine> productionLines,
         ProductionLine recycleLine)
     {
         if (recycleRequired)
             return recycleLine;
 
-        LegoBrick? currentBrick = CurrentStep();
+        LegoBrick? aktuellerBrick = CurrentStep();
 
-        if (currentBrick == null)
+        if (aktuellerBrick == null)
             return null;
 
         foreach (ProductionLine line in productionLines)
         {
-            if (line.Bricks.Contains(currentBrick))
+            if (EnthaeltStein(line, aktuellerBrick))
                 return line;
         }
 
         return null;
     }
 
-    // Prüft, ob ein Stein zum aktuellen Auftragsschritt passt.
+
+    // --------------------------------------------------------
+    // Prüfen, ob ein Stein aufgenommen werden darf
+    // --------------------------------------------------------
+
     public bool IsNeeded(
         LegoBrick brick,
         ProductionLine source,
-        List<ProductionLine> productionLines,
+        IReadOnlyList<ProductionLine> productionLines,
         ProductionLine recycleLine)
     {
         if (!HasOrder || IsComplete || brickPickedUp)
             return false;
 
+        // Nur bewegliche Steine dürfen aufgenommen werden.
         if (brick.Status != BrickStatus.Moving)
             return false;
 
-        LegoBrick? currentBrick = CurrentStep();
+        LegoBrick? aktuellerBrick = CurrentStep();
 
-        if (currentBrick == null ||
-            brick.Color != currentBrick.Color)
-        {
+        if (aktuellerBrick == null)
             return false;
-        }
 
-        // Nach einer Ablehnung ist nur der abgelehnte Stein erlaubt.
+        // Nach einer Ablehnung darf ausschließlich derselbe
+        // Stein von der Recyclinglinie aufgenommen werden.
         if (recycleRequired)
         {
-            return source == recycleLine &&
-                   brick == rejectedBrick &&
-                   brick.RecyclePlatz >= 0;
+            return
+                ReferenceEquals(source, recycleLine) &&
+                ReferenceEquals(brick, rejectedBrick) &&
+                brick.RecyclePlatz >= 0;
         }
 
-        ProductionLine? requiredStation =
+        // Im normalen Ablauf müssen Farbe und Produktionslinie stimmen.
+        if (brick.Color != aktuellerBrick.Color)
+            return false;
+
+        ProductionLine? erforderlicheStation =
             PickStation(productionLines, recycleLine);
 
-        return source == requiredStation &&
-               source.Bricks.Contains(brick) &&
-               brick.RecyclePlatz < 0;
+        return
+            ReferenceEquals(source, erforderlicheStation) &&
+            EnthaeltStein(source, brick) &&
+            brick.RecyclePlatz < 0;
     }
 
-    // Wird aufgerufen, wenn der Roboter einen Stein aufgenommen hat.
+
+    // Prüft, ob ein bestimmter Stein auf einer Produktionslinie liegt.
+    private static bool EnthaeltStein(
+        ProductionLine line,
+        LegoBrick brick)
+    {
+        foreach (LegoBrick vorhandenerBrick in line.Bricks)
+        {
+            if (ReferenceEquals(vorhandenerBrick, brick))
+                return true;
+        }
+
+        return false;
+    }
+
+
+    // --------------------------------------------------------
+    // Steinaufnahme
+    // --------------------------------------------------------
+
+    // Wird aufgerufen, sobald der Roboter einen Stein aufgenommen hat.
     public void BrickPickedUp()
     {
         brickPickedUp = true;
     }
 
-    // 50 % Ablehnungswahrscheinlichkeit für jeden Prüfversuch.
+
+    // --------------------------------------------------------
+    // Qualitätsprüfung
+    // --------------------------------------------------------
+
+    // Jeder Prüfversuch hat eine Ablehnungswahrscheinlichkeit von 50 %.
     public bool ShouldRecycle()
     {
         return random.NextDouble() < 0.5;
     }
 
-    // Merkt sich einen abgelehnten Stein.
+
+    // Speichert einen abgelehnten Stein.
+    // Der aktuelle Auftragsschritt bleibt unverändert.
     public void BrickRejected(LegoBrick brick)
     {
-        recycleRequired = true;
         rejectedBrick = brick;
 
+        recycleRequired = true;
         brickPickedUp = false;
     }
 
-    // Schließt einen erfolgreich gelieferten Auftragsschritt ab.
+
+    // --------------------------------------------------------
+    // Erfolgreiche Lieferung
+    // --------------------------------------------------------
+
+    // Schließt den aktuellen Auftragsschritt ab.
+    // Die Factory ruft diese Methode erst nach erfolgreicher
+    // Rückkehr des Steins zur ursprünglichen Produktionsposition auf.
     public void BrickDelivered()
     {
-        LegoBrick? currentBrick = CurrentStep();
+        LegoBrick? aktuellerBrick = CurrentStep();
 
-        if (currentBrick == null)
+        if (aktuellerBrick == null)
             return;
 
-        delivered[currentBrick.Color]++;
+        // Lieferzähler der entsprechenden Farbe erhöhen.
+        delivered[aktuellerBrick.Color]++;
 
+        // Zum nächsten Auftragsschritt wechseln.
         naechsterSchritt++;
 
+        // Zustand des abgeschlossenen Schritts zurücksetzen.
         brickPickedUp = false;
         recycleRequired = false;
-
         rejectedBrick = null;
     }
 
-    public int GetDelivered(LegoColor color)
-    {
-        return delivered[color];
-    }
+
+    // --------------------------------------------------------
+    // Bestell- und Lieferübersicht
+    // --------------------------------------------------------
 
     public int GetOrder(LegoColor color)
     {
         int count = 0;
 
-        foreach (LegoBrick brick in Order)
+        foreach (LegoBrick brick in order)
         {
             if (brick.Color == color)
                 count++;
@@ -201,61 +284,39 @@ public class Logistics
         return count;
     }
 
-    public int GetDelivered()
+
+    public int GetDelivered(LegoColor color)
     {
-        int total = 0;
-
-        foreach (int count in delivered.Values)
-        {
-            total += count;
-        }
-
-        return total;
+        return delivered[color];
     }
 
+
+    // Gibt die Nummer des aktuellen Auftragsschritts zurück.
     // Die Anzeige beginnt bei Schritt 1.
     public int CurrentStepNumber()
     {
         if (!HasOrder)
             return 0;
 
-        return IsComplete
-            ? Order.Count
-            : naechsterSchritt + 1;
+        if (IsComplete)
+            return order.Count;
+
+        return naechsterSchritt + 1;
     }
 
-    public static char ToChar(LegoColor color)
-    {
-        return color switch
-        {
-            LegoColor.red => 'R',
-            LegoColor.green => 'G',
-            LegoColor.blue => 'B',
-            LegoColor.yellow => 'Y',
-            _ => '?'
-        };
-    }
 
-    public static LegoColor ToColor(char color)
-    {
-        return char.ToUpperInvariant(color) switch
-        {
-            'R' => LegoColor.red,
-            'G' => LegoColor.green,
-            'B' => LegoColor.blue,
-            'Y' => LegoColor.yellow,
-            _ => throw new ArgumentException(
-                "Unbekannte Brick-Farbe.")
-        };
-    }
+    // --------------------------------------------------------
+    // Hilfsmethoden
+    // --------------------------------------------------------
 
+    // Setzt alle Lieferzähler auf null.
     private void ResetDeliveryCounters()
     {
         delivered.Clear();
 
-        foreach (LegoColor color in farben)
+        foreach (LegoColor farbe in farben)
         {
-            delivered[color] = 0;
+            delivered[farbe] = 0;
         }
     }
 }

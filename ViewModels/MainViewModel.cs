@@ -2,119 +2,232 @@ using System;
 using System.Collections.Generic;
 using Avalonia.Threading;
 using MyAvaloniaApp.Models;
-using static MyAvaloniaApp.Models.Parameters;
 
 namespace MyAvaloniaApp.ViewModels;
 
-// Verbindet die Fabriklogik mit der grafischen Oberfläche.
+
+// Verbindet die Fachlogik der Factory mit der Benutzeroberfläche.
 public partial class MainViewModel : ViewModelBase
 {
+    // --------------------------------------------------------
+    // Felder
+    // --------------------------------------------------------
+
     private readonly Factory factory;
 
+    // Timer für die Bewegung der Produktionslinien.
     private readonly DispatcherTimer timer;
+
+    // Timer für die kontinuierliche Roboterbewegung.
     private readonly DispatcherTimer robotMovementTimer;
 
+    // Aktuell ausgeführter Roboterbewegungsbefehl.
     private Action? currentRobotMovement;
 
-    private bool continuousMovementEnabled;
+    // Bestimmt den aktiven Bewegungsmodus.
+    private bool isStepMode = true;
+
+    // Gibt an, ob die LEGO-Steine bereits angezeigt werden.
     private bool bricksVisible;
 
+    // Statusmeldungen für die Oberfläche.
+    private string orderInfo = string.Empty;
     private string undockInfo = string.Empty;
 
-    // Für jeden möglichen Stein wird ein ViewModel vorbereitet.
+    // Zeitabstand zwischen zwei Roboterbewegungen.
+    private const int RobotMovementInterval = 150;
+
+    // ViewModels für die Darstellung der 16 LEGO-Steine.
     public List<LegoBrickViewModel> BricksView { get; } = new();
 
-    // ------------------------------------------------------------
-    // Roboter
-    // ------------------------------------------------------------
+
+    // --------------------------------------------------------
+    // Eigenschaften: Roboter
+    // --------------------------------------------------------
 
     public double RobotX => factory.RobotX;
+
     public double RobotY => factory.RobotY;
+
     public double RobotAngle => factory.RobotAngle;
 
-    // Wird ebenfalls von der bestehenden XAML-Datei verwendet.
-    public double Rotation => RobotAngle;
-
     public double RobotWidth => ViewParameters.RobotWidth;
+
     public double RobotHeight => ViewParameters.RobotHeight;
 
-    // ------------------------------------------------------------
-    // Produktionslinien
-    // ------------------------------------------------------------
 
-    public ProductionLine ProductionLineRed =>
-        factory.ProductionLineRed;
+    // --------------------------------------------------------
+    // Eigenschaften: Produktionslinien
+    // --------------------------------------------------------
 
-    public ProductionLine ProductionLineYellow =>
-        factory.ProductionLineYellow;
+    // Blaue Produktionslinie.
+    public double ProductionBlueX =>
+        factory.ProductionLineBlue.Pose.X;
 
-    public ProductionLine ProductionLineBlue =>
-        factory.ProductionLineBlue;
+    public double ProductionBlueY =>
+        factory.ProductionLineBlue.Pose.Y;
 
-    public ProductionLine ProductionLineGreen =>
-        factory.ProductionLineGreen;
+    public double ProductionBlueAngle =>
+        factory.ProductionLineBlue.Pose.Angle;
 
-    public ProductionLine ProductionLineRecycle =>
-        factory.ProductionLineRecycle;
 
-    public ProductionLine ProductionLineDelivery =>
-        factory.ProductionLineDelivery;
+    // Grüne Produktionslinie.
+    public double ProductionGreenX =>
+        factory.ProductionLineGreen.Pose.X;
 
-    // Zusätzliche Aliase für alternative Bindungsnamen.
-    public ProductionLine RecycleLine =>
-        factory.ProductionLineRecycle;
+    public double ProductionGreenY =>
+        factory.ProductionLineGreen.Pose.Y;
 
-    public ProductionLine DeliveryLine =>
-        factory.ProductionLineDelivery;
+    public double ProductionGreenAngle =>
+        factory.ProductionLineGreen.Pose.Angle;
 
+
+    // Rote Produktionslinie.
+    public double ProductionRedX =>
+        factory.ProductionLineRed.Pose.X;
+
+    public double ProductionRedY =>
+        factory.ProductionLineRed.Pose.Y;
+
+    public double ProductionRedAngle =>
+        factory.ProductionLineRed.Pose.Angle;
+
+
+    // Gelbe Produktionslinie.
+    public double ProductionYellowX =>
+        factory.ProductionLineYellow.Pose.X;
+
+    public double ProductionYellowY =>
+        factory.ProductionLineYellow.Pose.Y;
+
+    public double ProductionYellowAngle =>
+        factory.ProductionLineYellow.Pose.Angle;
+
+
+    // Gemeinsame Abmessungen der vier normalen Produktionslinien.
     public double ProductionLineWidth =>
         ViewParameters.ProductionLineWidth;
 
     public double ProductionLineHeight =>
         ViewParameters.ProductionLineHeight;
 
-    public double RecycleLineWidth =>
-        ViewParameters.RecycleLineWidth;
 
-    public double RecycleLineHeight =>
-        ViewParameters.RecycleLineHeight;
+    // --------------------------------------------------------
+    // Eigenschaften: Recyclinglinie
+    // --------------------------------------------------------
 
-    public double DeliveryLineWidth =>
-        ViewParameters.DeliveryLineWidth;
+    public double ProductionRecycleX =>
+        factory.ProductionLineRecycle.Pose.X;
 
-    public double DeliveryLineHeight =>
-        ViewParameters.DeliveryLineHeight;
+    public double ProductionRecycleY =>
+        factory.ProductionLineRecycle.Pose.Y;
 
-    // ------------------------------------------------------------
-    // Pfeile
-    // ------------------------------------------------------------
+    public double ProductionRecycleAngle =>
+        factory.ProductionLineRecycle.Pose.Angle;
 
-    public double CustomerArrowX => factory.CustomerArrowX;
-    public double CustomerArrowY => factory.CustomerArrowY;
 
-    public double RecyclingArrowX => factory.RecyclingArrowX;
-    public double RecyclingArrowY => factory.RecyclingArrowY;
+    // --------------------------------------------------------
+    // Eigenschaften: Delivery Line
+    // --------------------------------------------------------
 
-    public double CustomerArrowWidth =>
-        ViewParameters.CustomerArrowWidth;
+    public double ProductionDeliveryX =>
+        factory.ProductionLineDelivery.Pose.X;
 
-    public double CustomerArrowHeight =>
-        ViewParameters.CustomerArrowHeight;
+    public double ProductionDeliveryY =>
+        factory.ProductionLineDelivery.Pose.Y;
 
-    public double RecyclingArrowWidth =>
-        ViewParameters.RecyclingArrowWidth;
+    public double ProductionDeliveryAngle =>
+        factory.ProductionLineDelivery.Pose.Angle;
 
-    public double RecyclingArrowHeight =>
-        ViewParameters.RecyclingArrowHeight;
+    public double ProductionDeliveryWidth =>
+        ViewParameters.ProductionDeliveryWidth;
 
-    // ------------------------------------------------------------
-    // Benutzeroberfläche
-    // ------------------------------------------------------------
+    public double ProductionDeliveryHeight =>
+        ViewParameters.ProductionDeliveryHeight;
 
-    public bool CanSetupProductionLines => !bricksVisible;
+
+    // --------------------------------------------------------
+    // Eigenschaften: Transportlinien
+    // --------------------------------------------------------
+
+    // Transportlinie zum Kunden.
+    public double ToCustomerX =>
+        ViewParameters.ToCustomerLinePosition.X;
+
+    public double ToCustomerY =>
+        ViewParameters.ToCustomerLinePosition.Y;
+
+    public double ToCustomerWidth =>
+        ViewParameters.ToCustomerLineWidth;
+
+    public double ToCustomerHeight =>
+        ViewParameters.ToCustomerLineHeight;
+
+
+    // Transportlinie zum Recycling.
+    public double ToRecycleX =>
+        ViewParameters.ToRecycleLinePosition.X;
+
+    public double ToRecycleY =>
+        ViewParameters.ToRecycleLinePosition.Y;
+
+    public double ToRecycleWidth =>
+        ViewParameters.ToRecycleLineWidth;
+
+    public double ToRecycleHeight =>
+        ViewParameters.ToRecycleLineHeight;
+
+
+    // --------------------------------------------------------
+    // Eigenschaften: Bestellung und Lieferübersicht
+    // --------------------------------------------------------
+
+    public IReadOnlyList<LegoBrick> Order =>
+        factory.LegoOrder;
+
+
+    // Anzahl der bestellten Steine je Farbe.
+    public int RedOrder =>
+        factory.GetOrder(LegoColor.red);
+
+    public int GreenOrder =>
+        factory.GetOrder(LegoColor.green);
+
+    public int BlueOrder =>
+        factory.GetOrder(LegoColor.blue);
+
+    public int YellowOrder =>
+        factory.GetOrder(LegoColor.yellow);
+
+
+    // Anzahl der erfolgreich gelieferten Steine je Farbe.
+    public int RedDelivered =>
+        factory.GetDelivered(LegoColor.red);
+
+    public int GreenDelivered =>
+        factory.GetDelivered(LegoColor.green);
+
+    public int BlueDelivered =>
+        factory.GetDelivered(LegoColor.blue);
+
+    public int YellowDelivered =>
+        factory.GetDelivered(LegoColor.yellow);
+
+
+    // Informationen zum aktuellen Auftragsschritt.
+    public string CurrentStepInfo => orderInfo;
+
+
+    // --------------------------------------------------------
+    // Eigenschaften: Benutzeroberfläche
+    // --------------------------------------------------------
+
+    public bool CanSetupProductionLines =>
+        !bricksVisible;
 
     public bool CanCreateOrder =>
         bricksVisible && !factory.HasOrder;
+
 
     public string UndockInfo
     {
@@ -131,63 +244,14 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    public string CurrentStepInfo
-    {
-        get
-        {
-            if (!factory.HasOrder)
-                return string.Empty;
 
-            if (factory.OrderComplete)
-            {
-                return $"Order complete: all {Parameters.orderSize} bricks delivered";
-            }
-
-            if (factory.IsRecyclingRequired)
-            {
-                return "The rejected brick must be collected from the recycling line.";
-            }
-
-            if (factory.CurrentBrickColor == null)
-                return string.Empty;
-
-            string color =
-                ColorName(factory.CurrentBrickColor.Value);
-
-            string step =
-                $"Step {factory.LogisticsStep}/{factory.OrderCount}: ";
-
-            if (factory.IsBrickPickedUp)
-            {
-                return step + $"Bring the {color} brick to delivery.";
-            }
-
-            string station =
-                StationName(factory.CurrentStation);
-
-            return step +
-                   $"Pick the {color} brick from {station} and bring to delivery.";
-        }
-    }
-
-    // ------------------------------------------------------------
-    // Bewegungsmodus
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
+    // Eigenschaften: Bewegungsmodus
+    // --------------------------------------------------------
 
     public bool IsStepMovementSelected
     {
-        get => !continuousMovementEnabled;
-
-        set
-        {
-            if (value)
-                SetRobotMovementMode(false);
-        }
-    }
-
-    public bool IsContinuousMovementSelected
-    {
-        get => continuousMovementEnabled;
+        get => isStepMode;
 
         set
         {
@@ -196,38 +260,41 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    // ------------------------------------------------------------
-    // Bestellübersicht
-    // ------------------------------------------------------------
 
-    public int RedOrder => factory.GetOrder(LegoColor.red);
-    public int BlueOrder => factory.GetOrder(LegoColor.blue);
-    public int GreenOrder => factory.GetOrder(LegoColor.green);
-    public int YellowOrder => factory.GetOrder(LegoColor.yellow);
+    public bool IsContinuousMovementSelected
+    {
+        get => !isStepMode;
 
-    public int RedDelivered => factory.GetDelivered(LegoColor.red);
-    public int BlueDelivered => factory.GetDelivered(LegoColor.blue);
-    public int GreenDelivered => factory.GetDelivered(LegoColor.green);
-    public int YellowDelivered => factory.GetDelivered(LegoColor.yellow);
+        set
+        {
+            if (value)
+                SetRobotMovementMode(false);
+        }
+    }
 
-    // ------------------------------------------------------------
+
+    // --------------------------------------------------------
     // Konstruktor
-    // ------------------------------------------------------------
+    // --------------------------------------------------------
 
     public MainViewModel()
     {
         factory = new Factory();
 
+        // Ereignisse der Factory abonnieren.
         factory.BrickDelivered += HandleBrickDelivered;
         factory.TransportMessage += HandleTransportMessage;
 
-        for (int i = 0;
-             i < 4 * Parameters.bricksPerLine;
-             i++)
+
+        // Für jeden der 16 möglichen LEGO-Steine
+        // ein leeres ViewModel erstellen.
+        for (int i = 0; i < 4 * Parameters.bricksPerLine; i++)
         {
             BricksView.Add(new LegoBrickViewModel());
         }
 
+
+        // Timer für die Bewegung der Produktionslinien.
         timer = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(
@@ -236,19 +303,25 @@ public partial class MainViewModel : ViewModelBase
 
         timer.Tick += Timer_Tick;
 
+
+        // Timer für die kontinuierliche Roboterbewegung.
         robotMovementTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(
-                Parameters.robotTimerInterval)
+                RobotMovementInterval)
         };
 
         robotMovementTimer.Tick += RobotMovementTimer_Tick;
+
+        UpdateOrderInfo();
     }
 
-    // ------------------------------------------------------------
-    // Produktionslinien
-    // ------------------------------------------------------------
 
+    // --------------------------------------------------------
+    // Produktionslinien einrichten
+    // --------------------------------------------------------
+
+    // Erzeugt die LEGO-Steine und weist sie ihren ViewModels zu.
     public void SetupProductionLines()
     {
         if (bricksVisible)
@@ -271,9 +344,10 @@ public partial class MainViewModel : ViewModelBase
         NotifyLegoBricksPoseChanged();
     }
 
-    // ------------------------------------------------------------
-    // Bestellung
-    // ------------------------------------------------------------
+
+    // --------------------------------------------------------
+    // Bestellung erstellen
+    // --------------------------------------------------------
 
     public void CreateOrder()
     {
@@ -282,19 +356,25 @@ public partial class MainViewModel : ViewModelBase
 
         factory.CreateOrder();
 
+        OnPropertyChanged(nameof(Order));
+
         NotifyOrderProperties();
 
-        OnPropertyChanged(nameof(CurrentStepInfo));
+        UpdateOrderInfo();
+
         OnPropertyChanged(nameof(CanCreateOrder));
     }
 
-    // ------------------------------------------------------------
-    // Roboterbewegung
-    // ------------------------------------------------------------
 
+    // --------------------------------------------------------
+    // Roboterbewegung
+    // --------------------------------------------------------
+
+    // Führt einen Bewegungsbefehl abhängig vom Bewegungsmodus aus.
     private void ExecuteRobotMovement(Action movement)
     {
-        if (!continuousMovementEnabled)
+        // Im Schrittmodus wird der Befehl einmal ausgeführt.
+        if (isStepMode)
         {
             movement();
 
@@ -304,6 +384,8 @@ public partial class MainViewModel : ViewModelBase
             return;
         }
 
+        // Im kontinuierlichen Modus wird der Befehl
+        // gespeichert und regelmäßig wiederholt.
         currentRobotMovement = movement;
 
         movement();
@@ -314,6 +396,8 @@ public partial class MainViewModel : ViewModelBase
         robotMovementTimer.Start();
     }
 
+
+    // Wird bei jedem Tick des Roboter-Timers aufgerufen.
     private void RobotMovementTimer_Tick(
         object? sender,
         EventArgs e)
@@ -324,6 +408,8 @@ public partial class MainViewModel : ViewModelBase
         NotifyLegoBricksPoseChanged();
     }
 
+
+    // Grundbewegungen.
     public void MoveUp() =>
         ExecuteRobotMovement(
             () => factory.RobotBewegen(Direction.up));
@@ -340,6 +426,8 @@ public partial class MainViewModel : ViewModelBase
         ExecuteRobotMovement(
             () => factory.RobotBewegen(Direction.right));
 
+
+    // Diagonale Bewegungen.
     public void MoveUpLeft()
     {
         ExecuteRobotMovement(() =>
@@ -376,6 +464,8 @@ public partial class MainViewModel : ViewModelBase
         });
     }
 
+
+    // Stoppt die kontinuierliche Roboterbewegung.
     public void StopButton()
     {
         StopContinuousRobotMovement();
@@ -386,6 +476,8 @@ public partial class MainViewModel : ViewModelBase
         NotifyLegoBricksPoseChanged();
     }
 
+
+    // Drehbewegungen.
     public void TurnLeft() =>
         ExecuteRobotMovement(
             () => factory.RobotBewegen(Direction.turnLeft));
@@ -394,6 +486,8 @@ public partial class MainViewModel : ViewModelBase
         ExecuteRobotMovement(
             () => factory.RobotBewegen(Direction.turnRight));
 
+
+    // Setzt die Roboterrotation auf null Grad.
     public void TurnToZeroDegrees()
     {
         StopContinuousRobotMovement();
@@ -404,6 +498,11 @@ public partial class MainViewModel : ViewModelBase
         NotifyLegoBricksPoseChanged();
     }
 
+
+    // --------------------------------------------------------
+    // Bewegungsmodus
+    // --------------------------------------------------------
+
     private void StopContinuousRobotMovement()
     {
         robotMovementTimer.Stop();
@@ -411,12 +510,13 @@ public partial class MainViewModel : ViewModelBase
         currentRobotMovement = null;
     }
 
-    private void SetRobotMovementMode(bool continuous)
+
+    private void SetRobotMovementMode(bool stepMode)
     {
-        if (continuousMovementEnabled == continuous)
+        if (isStepMode == stepMode)
             return;
 
-        continuousMovementEnabled = continuous;
+        isStepMode = stepMode;
 
         StopContinuousRobotMovement();
 
@@ -424,20 +524,25 @@ public partial class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsContinuousMovementSelected));
     }
 
-    // ------------------------------------------------------------
-    // Timer für Produktionslinien
-    // ------------------------------------------------------------
+
+    // --------------------------------------------------------
+    // Timer der Produktionslinien
+    // --------------------------------------------------------
 
     public void TimerStart()
     {
         timer.Start();
     }
 
+
     public void TimerStop()
     {
         timer.Stop();
     }
 
+
+    // Bewegt die Produktionslinien und aktualisiert anschließend
+    // die grafische Darstellung der Steine.
     private void Timer_Tick(object? sender, EventArgs e)
     {
         factory.LegoBricksBewegen();
@@ -445,10 +550,12 @@ public partial class MainViewModel : ViewModelBase
         NotifyLegoBricksPoseChanged();
     }
 
-    // ------------------------------------------------------------
-    // Transport
-    // ------------------------------------------------------------
 
+    // --------------------------------------------------------
+    // Automatische Positionierung
+    // --------------------------------------------------------
+
+    // Positioniert den Roboter vor der benötigten Produktionslinie.
     public void GoToLine()
     {
         StopContinuousRobotMovement();
@@ -460,6 +567,8 @@ public partial class MainViewModel : ViewModelBase
         NotifyLegoBricksPoseChanged();
     }
 
+
+    // Positioniert den Roboter vor der Delivery Line.
     public void GoToDelivery()
     {
         StopContinuousRobotMovement();
@@ -470,6 +579,11 @@ public partial class MainViewModel : ViewModelBase
         NotifyRobotPoseChanged();
         NotifyLegoBricksPoseChanged();
     }
+
+
+    // --------------------------------------------------------
+    // Stein absetzen
+    // --------------------------------------------------------
 
     public void Undock()
     {
@@ -494,18 +608,20 @@ public partial class MainViewModel : ViewModelBase
         NotifyLegoBricksPoseChanged();
     }
 
-    // ------------------------------------------------------------
-    // Aktualisierung der Anzeige
-    // ------------------------------------------------------------
+
+    // --------------------------------------------------------
+    // Grafische Darstellung aktualisieren
+    // --------------------------------------------------------
 
     private void NotifyRobotPoseChanged()
     {
         OnPropertyChanged(nameof(RobotX));
         OnPropertyChanged(nameof(RobotY));
         OnPropertyChanged(nameof(RobotAngle));
-        OnPropertyChanged(nameof(Rotation));
     }
 
+
+    // Aktualisiert die Darstellung aller LEGO-Steine.
     private void NotifyLegoBricksPoseChanged()
     {
         foreach (LegoBrickViewModel brickView in BricksView)
@@ -513,45 +629,83 @@ public partial class MainViewModel : ViewModelBase
             brickView.Refresh();
         }
 
-        OnPropertyChanged(nameof(CurrentStepInfo));
+        UpdateOrderInfo();
     }
 
+
+    // Aktualisiert die Bestell- und Lieferübersicht.
     private void NotifyOrderProperties()
     {
         OnPropertyChanged(nameof(RedOrder));
-        OnPropertyChanged(nameof(BlueOrder));
         OnPropertyChanged(nameof(GreenOrder));
+        OnPropertyChanged(nameof(BlueOrder));
         OnPropertyChanged(nameof(YellowOrder));
 
         OnPropertyChanged(nameof(RedDelivered));
-        OnPropertyChanged(nameof(BlueDelivered));
         OnPropertyChanged(nameof(GreenDelivered));
+        OnPropertyChanged(nameof(BlueDelivered));
         OnPropertyChanged(nameof(YellowDelivered));
     }
 
-    // ------------------------------------------------------------
-    // Factory-Events
-    // ------------------------------------------------------------
 
-    private void HandleBrickDelivered(LegoColor color)
+    // --------------------------------------------------------
+    // Informationen zum aktuellen Auftrag
+    // --------------------------------------------------------
+
+    private void UpdateOrderInfo()
     {
-        NotifyOrderProperties();
+        string newInfo;
+
+        if (!factory.HasOrder)
+        {
+            newInfo = string.Empty;
+        }
+        else if (factory.OrderComplete)
+        {
+            newInfo =
+                $"Order complete: all {Parameters.orderSize} bricks delivered";
+        }
+        else if (factory.IsRecyclingRequired)
+        {
+            newInfo =
+                "The rejected brick must be collected from the recycling line.";
+        }
+        else if (factory.CurrentBrickColor == null)
+        {
+            newInfo = string.Empty;
+        }
+        else
+        {
+            string color = ColorName(factory.CurrentBrickColor.Value);
+
+            string step =
+                $"Step {factory.LogisticsStep}/{factory.OrderCount}: ";
+
+            if (factory.IsBrickPickedUp)
+            {
+                newInfo =
+                    step + $"Bring the {color} brick to delivery.";
+            }
+            else
+            {
+                string station = StationName(factory.CurrentStation);
+
+                newInfo =
+                    step +
+                    $"Pick the {color} brick from {station} and bring to delivery.";
+            }
+        }
+
+        if (orderInfo == newInfo)
+            return;
+
+        orderInfo = newInfo;
 
         OnPropertyChanged(nameof(CurrentStepInfo));
-        OnPropertyChanged(nameof(CanCreateOrder));
     }
 
-    private void HandleTransportMessage(string message)
-    {
-        UndockInfo = message;
 
-        OnPropertyChanged(nameof(CurrentStepInfo));
-    }
-
-    // ------------------------------------------------------------
-    // Hilfsmethoden
-    // ------------------------------------------------------------
-
+    // Wandelt einen Enum-Wert in einen lesbaren Farbnamen um.
     private static string ColorName(LegoColor color)
     {
         return color switch
@@ -564,6 +718,8 @@ public partial class MainViewModel : ViewModelBase
         };
     }
 
+
+    // Gibt den Namen der Produktionsstation zurück.
     private string StationName(ProductionLine? station)
     {
         if (station == factory.ProductionLineRed)
@@ -582,5 +738,31 @@ public partial class MainViewModel : ViewModelBase
             return "recycle line";
 
         return "unknown line";
+    }
+
+
+    // --------------------------------------------------------
+    // Ereignisse der Factory
+    // --------------------------------------------------------
+
+    // Wird nach einer erfolgreichen Lieferung aufgerufen.
+    private void HandleBrickDelivered(LegoColor color)
+    {
+        NotifyOrderProperties();
+
+        OnPropertyChanged(nameof(Order));
+
+        OnPropertyChanged(nameof(CanCreateOrder));
+
+        UpdateOrderInfo();
+    }
+
+
+    // Übernimmt Statusmeldungen der Factory.
+    private void HandleTransportMessage(string message)
+    {
+        UndockInfo = message;
+
+        UpdateOrderInfo();
     }
 }

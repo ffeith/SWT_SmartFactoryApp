@@ -4,100 +4,109 @@ using System.Drawing;
 
 namespace MyAvaloniaApp.Models;
 
-// Der Roboter ist ein Beweger mit eigener Bewegungsrichtung.
+
+// Der Roboter erbt die Bewegungs- und Kollisionsfunktionen
+// von Beweger und ergänzt die automatische Positionierung.
 public class Robot : Beweger
 {
-    private Parameters.Direction robotDirection =
-        Parameters.Direction.stop;
+    // Abstand zwischen dem Greifpunkt des Roboters
+    // und dem Mittelpunkt der angefahrenen Linie.
+    private const int abstandZurLinie = 30;
 
-    private const int AbstandZurLinie = 30;
 
-    public Parameters.Direction RobotDirection
-    {
-        get => robotDirection;
-        private set => robotDirection = value;
-    }
-
-    public Robot(
-        Point location,
-        Rectangle borders,
-        IReadOnlyList<ProductionLine> productionLines,
-        IReadOnlyList<ProductionLine> dockLines)
-        : base(location, borders, productionLines, dockLines)
-    {
-    }
+    // --------------------------------------------------------
+    // Konstruktor
+    // --------------------------------------------------------
 
     public Robot(
         Pose pose,
         Rectangle borders,
-        IReadOnlyList<ProductionLine> productionLines,
-        IReadOnlyList<ProductionLine> dockLines)
-        : base(pose, borders, productionLines, dockLines)
+        IReadOnlyList<ProductionLine> lines)
+        : base(pose, borders, lines, lines)
     {
     }
 
-    // Speichert die Richtung und führt die Bewegung aus.
-    public override void Bewegen(Parameters.Direction direction)
-    {
-        RobotDirection = direction;
 
-        base.Bewegen(direction);
-    }
+    // --------------------------------------------------------
+    // Automatische Positionierung
+    // --------------------------------------------------------
 
-    // Positioniert den Roboter vor einer Linie.
+    // Positioniert den Roboter vor einer Produktionslinie.
+    //
+    // Die eigentliche Aufnahme eines LEGO-Steins erfolgt
+    // anschließend durch die manuelle Bewegung des Roboters.
     public void GeheZuLinie(
         Pose linienPose,
         double linienBreite,
         double linienHoehe,
         double zielwinkel)
     {
-        double angleRad = zielwinkel * Math.PI / 180.0;
+        // Zielwinkel von Grad in Radiant umrechnen.
+        double winkel = zielwinkel * Math.PI / 180.0;
 
-        double forwardX = Math.Sin(angleRad);
-        double forwardY = -Math.Cos(angleRad);
+        // Bewegungsrichtung des Greifpunkts berechnen.
+        double richtungX = Math.Sin(winkel);
+        double richtungY = -Math.Cos(winkel);
 
-        double centerX =
+
+        // Mittelpunkt der Produktionslinie berechnen.
+        double linienMitteX =
             linienPose.X + linienBreite / 2.0;
 
-        double centerY =
+        double linienMitteY =
             linienPose.Y + linienHoehe / 2.0;
 
-        double lineAngleRad =
+
+        // Ausrichtung der Produktionslinie berücksichtigen.
+        double linienWinkel =
             linienPose.Angle * Math.PI / 180.0;
 
-        double axisXX = Math.Cos(lineAngleRad);
-        double axisXY = Math.Sin(lineAngleRad);
+        // Richtung entlang der Produktionslinie.
+        double achseX = Math.Cos(linienWinkel);
+        double achseY = Math.Sin(linienWinkel);
 
-        double axisYX = -Math.Sin(lineAngleRad);
-        double axisYY = Math.Cos(lineAngleRad);
+        // Richtung senkrecht zur Produktionslinie.
+        double normalX = -Math.Sin(linienWinkel);
+        double normalY = Math.Cos(linienWinkel);
 
-        double halfExtent =
-            Math.Abs(forwardX * axisXX + forwardY * axisXY)
+
+        // Ausdehnung der Linie in Anfahrtrichtung berechnen.
+        double halbeAusdehnung =
+            Math.Abs(richtungX * achseX + richtungY * achseY)
                 * linienBreite / 2.0
             +
-            Math.Abs(forwardX * axisYX + forwardY * axisYY)
+            Math.Abs(richtungX * normalX + richtungY * normalY)
                 * linienHoehe / 2.0;
 
-        double distance = halfExtent + AbstandZurLinie;
 
-        double tcpX = centerX - forwardX * distance;
-        double tcpY = centerY - forwardY * distance;
+        // Greifpunkt mit zusätzlichem Abstand vor der Linie platzieren.
+        double abstand = halbeAusdehnung + abstandZurLinie;
 
+        double greifpunktX =
+            linienMitteX - richtungX * abstand;
+
+        double greifpunktY =
+            linienMitteY - richtungY * abstand;
+
+
+        // Position des Roboters anhand seines Greifpunkts berechnen.
         double robotX =
-            tcpX
+            greifpunktX
             - ViewParameters.RobotWidth / 2.0
-            - ViewParameters.RobotHeight / 2.0 * forwardX;
+            - ViewParameters.RobotHeight / 2.0 * richtungX;
 
         double robotY =
-            tcpY
+            greifpunktY
             - ViewParameters.RobotHeight / 2.0
-            - ViewParameters.RobotHeight / 2.0 * forwardY;
+            - ViewParameters.RobotHeight / 2.0 * richtungY;
 
-        SetzePose(new Pose(
+
+        // Neue Position und Ausrichtung übernehmen.
+        Pose neuePose = new(
             (int)Math.Round(robotX),
             (int)Math.Round(robotY),
-            (int)Math.Round(zielwinkel)));
+            (int)Math.Round(zielwinkel));
 
-        RobotDirection = Parameters.Direction.stop;
+        SetzePose(neuePose);
     }
 }

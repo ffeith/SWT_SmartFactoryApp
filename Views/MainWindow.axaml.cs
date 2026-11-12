@@ -4,18 +4,32 @@ using MyAvaloniaApp.ViewModels;
 
 namespace MyAvaloniaApp.Views;
 
-// Leitet Klicks aus der Oberfläche an das MainViewModel weiter.
+
+// Leitet Ereignisse der Benutzeroberfläche
+// an das MainViewModel weiter.
 public partial class MainWindow : Window
 {
+    // Zugriff auf das MainViewModel.
+    // Falls kein passendes ViewModel vorhanden ist,
+    // wird null zurückgegeben.
     private MainViewModel? ViewModel =>
         DataContext as MainViewModel;
+
+
+    // --------------------------------------------------------
+    // Konstruktor
+    // --------------------------------------------------------
 
     public MainWindow()
     {
         InitializeComponent();
     }
 
+
+    // --------------------------------------------------------
     // Roboterbewegung
+    // --------------------------------------------------------
+
     private void MoveUp_Click(object? sender, RoutedEventArgs e) =>
         ViewModel?.MoveUp();
 
@@ -28,6 +42,8 @@ public partial class MainWindow : Window
     private void MoveRight_Click(object? sender, RoutedEventArgs e) =>
         ViewModel?.MoveRight();
 
+
+    // Diagonale Bewegungen.
     private void MoveUpLeft_Click(object? sender, RoutedEventArgs e) =>
         ViewModel?.MoveUpLeft();
 
@@ -40,44 +56,85 @@ public partial class MainWindow : Window
     private void MoveDownRight_Click(object? sender, RoutedEventArgs e) =>
         ViewModel?.MoveDownRight();
 
-    private void StopButton_Click(object? sender, RoutedEventArgs e) =>
+
+    // Stoppt die aktuelle Roboterbewegung.
+    private void Stop_Click(object? sender, RoutedEventArgs e) =>
         ViewModel?.StopButton();
 
+
+    // --------------------------------------------------------
     // Roboterrotation
-    private void TurnLeft_Click(object? sender, RoutedEventArgs e) =>
+    // --------------------------------------------------------
+
+    private void MoveRotateLeft_Click(
+        object? sender,
+        RoutedEventArgs e) =>
         ViewModel?.TurnLeft();
 
-    private void TurnRight_Click(object? sender, RoutedEventArgs e) =>
+
+    private void MoveRotateRight_Click(
+        object? sender,
+        RoutedEventArgs e) =>
         ViewModel?.TurnRight();
 
-    private void TurnToZeroDegrees_Click(
+
+    // Setzt die Ausrichtung des Roboters auf null Grad zurück.
+    private void ResetRotation_Click(
         object? sender,
         RoutedEventArgs e) =>
         ViewModel?.TurnToZeroDegrees();
 
+
+    // --------------------------------------------------------
     // Timer
-    private void TimerStart_Click(object? sender, RoutedEventArgs e) =>
+    // --------------------------------------------------------
+
+    private void StartTimer_Click(
+        object? sender,
+        RoutedEventArgs e) =>
         ViewModel?.TimerStart();
 
-    private void TimerStop_Click(object? sender, RoutedEventArgs e) =>
+
+    private void StopTimer_Click(
+        object? sender,
+        RoutedEventArgs e) =>
         ViewModel?.TimerStop();
 
-    // Fabrik und Bestellung
+
+    // --------------------------------------------------------
+    // Produktionslinien und Bestellung
+    // --------------------------------------------------------
+
     private void SetupProductionLines_Click(
         object? sender,
         RoutedEventArgs e) =>
         ViewModel?.SetupProductionLines();
 
-    private void Order_Click(object? sender, RoutedEventArgs e) =>
+
+    private void Order_Click(
+        object? sender,
+        RoutedEventArgs e) =>
         ViewModel?.CreateOrder();
 
-    // Transport
-    private void GoToLine_Click(object? sender, RoutedEventArgs e) =>
+
+    // --------------------------------------------------------
+    // Transport und Undocken
+    // --------------------------------------------------------
+
+    private void GoToLine_Click(
+        object? sender,
+        RoutedEventArgs e) =>
         ViewModel?.GoToLine();
 
-    private void GoToDelivery_Click(object? sender, RoutedEventArgs e) =>
+
+    private void GoToDelivery_Click(
+        object? sender,
+        RoutedEventArgs e) =>
         ViewModel?.GoToDelivery();
 
-    private void Undock_Click(object? sender, RoutedEventArgs e) =>
+
+    private void UndockButton_Click(
+        object? sender,
+        RoutedEventArgs e) =>
         ViewModel?.Undock();
 }
