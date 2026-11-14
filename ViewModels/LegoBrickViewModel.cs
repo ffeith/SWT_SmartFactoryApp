@@ -80,7 +80,7 @@ public partial class LegoBrickViewModel : ViewModelBase
         // Die grafischen Eigenschaften neu berechnen.
         OnPropertyChanged(nameof(Width));
         OnPropertyChanged(nameof(Height));
-        OnPropertyChanged(nameof(Fill));
+        //OnPropertyChanged(nameof(Fill));
         OnPropertyChanged(nameof(IsVisible));
 
         Refresh();
@@ -100,6 +100,7 @@ public partial class LegoBrickViewModel : ViewModelBase
             X = 0;
             Y = 0;
             Angle = 0;
+            OnPropertyChanged(nameof(Fill));
 
             return;
         }
@@ -107,5 +108,6 @@ public partial class LegoBrickViewModel : ViewModelBase
         X = brick.X;
         Y = brick.Y;
         Angle = brick.Angle;
+        OnPropertyChanged(nameof(Fill));
     }
 }

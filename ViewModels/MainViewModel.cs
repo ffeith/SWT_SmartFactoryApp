@@ -228,6 +228,9 @@ public partial class MainViewModel : ViewModelBase
     public bool CanCreateOrder =>
         bricksVisible && !factory.HasOrder;
 
+    public bool CanShuffleBricks =>
+        bricksVisible;
+
 
     public string UndockInfo
     {
@@ -340,6 +343,7 @@ public partial class MainViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(CanSetupProductionLines));
         OnPropertyChanged(nameof(CanCreateOrder));
+        OnPropertyChanged(nameof(CanShuffleBricks));
 
         NotifyLegoBricksPoseChanged();
     }
@@ -606,6 +610,18 @@ public partial class MainViewModel : ViewModelBase
 
         NotifyRobotPoseChanged();
         NotifyLegoBricksPoseChanged();
+    }
+
+
+    // --------------------------------------------------------
+    // Steine tauschen (Shufflen)
+    // --------------------------------------------------------
+
+    public void Shuffle()
+    {
+        factory.Shuffle();
+        NotifyLegoBricksPoseChanged();
+        UpdateOrderInfo();
     }
 
 

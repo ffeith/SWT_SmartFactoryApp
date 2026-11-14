@@ -137,4 +137,10 @@ public partial class MainWindow : Window
         object? sender,
         RoutedEventArgs e) =>
         ViewModel?.Undock();
+
+
+    private void ShuffleBricksButton_Click(
+        object? sender,
+        RoutedEventArgs e) =>
+        ViewModel?.Shuffle();
 }

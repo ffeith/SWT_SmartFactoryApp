@@ -27,8 +27,9 @@ public class LegoBrick : Beweger
     // Eigenschaften
     // --------------------------------------------------------
 
+    public LegoColor Color { get; set; }
+
     // Farbe und Größe ändern sich während der Lebensdauer nicht.
-    public LegoColor Color { get; }
 
     public LegoSize Size { get; }
 

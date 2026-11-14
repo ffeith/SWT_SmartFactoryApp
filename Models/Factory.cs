@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MyAvaloniaApp.ViewModels;
 
 namespace MyAvaloniaApp.Models;
 
@@ -361,6 +362,47 @@ public class Factory
         transportBricks.Add(abgesetzterBrick);
 
         return UndockResult.Success;
+    }
+
+
+    // --------------------------------------------------------
+    // LEGO-Steine shufflen
+    // --------------------------------------------------------
+
+    public void Shuffle()
+    {
+        List<LegoBrick> shuffleBricks = new();
+        List<LegoColor> brickColors = new();
+        Random random = new();
+        int index;
+        LegoColor tempColor;
+
+        foreach (ProductionLine line in productionLines)
+        {
+            for (int i = 0; i < line.Bricks.Count; i++)
+            {
+                if (line.Bricks[i].Status == BrickStatus.Moving && line.Bricks[i].RecyclePlatz < 0)
+                {
+                    shuffleBricks.Add(line.Bricks[i]);
+                    brickColors.Add(line.Bricks[i].Color);
+                }
+            }
+        }
+
+        for (int i = brickColors.Count - 1; i > 0; i--)
+        {
+            index = random.Next(i);
+            tempColor = brickColors[index];
+            brickColors[index] = brickColors[i];
+            brickColors[i] = tempColor;
+        }
+
+        for (int i = 0; i < shuffleBricks.Count; i++)
+        {
+            shuffleBricks[i].Color = brickColors[i];
+        }
+
+        TransportMessage?.Invoke(shuffleBricks.Count + " Bricks shuffled.");
     }
 
 
