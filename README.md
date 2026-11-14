@@ -1,80 +1,61 @@
-# SmartFactory
+# SmartFactory – Practical Assessment Extension
 
 [English](README.md) | [Deutsch](README.de.md)
 
-SmartFactory is a desktop application that simulates an automated factory. It combines production processes, manual robot control, logistics planning, customer orders, quality control, and recycling in an interactive graphical environment.
+This branch contains an independent extension to the SmartFactory project, implemented after completion of the five original laboratory assignments at TH Köln.
 
-The project was developed as part of the **Software Engineering** module at **TH Köln**. The original application evolved through five consecutive laboratory assignments, each introducing new functionality and extending the existing object-oriented architecture.
+The practical assessment focused on extending the existing factory simulation with a function for randomly redistributing LEGO brick colors across all four production lines.
 
-## Features
+The task was completed independently, without AI assistance or internet access.
 
-- **Production lines:** Four production lines create and move LEGO bricks with randomly assigned colors.
-- **Robot control:** A manually controlled robot moves through the factory, interacts with production lines, and picks up and releases bricks.
-- **Customer orders:** Orders consist of eight randomly selected bricks.
-- **Logistics planning:** The logistics component determines the next required brick and the appropriate pickup station.
-- **Quality control:** Bricks undergo a probabilistic quality check.
-- **Recycling:** Rejected bricks are transported to the recycling line and can be collected again.
-- **Graphical simulation:** The Avalonia interface visualizes production lines, the robot, LEGO bricks, transportation, and order progress.
+## Task: Production-Line Color Shuffle
 
-## Architecture
+The objective was to introduce a Shuffle function that redistributes the existing colors among eligible bricks on all four production lines while preserving the underlying factory state.
 
-The application follows an object-oriented architecture with clearly separated responsibilities.
+### Implemented Requirements
 
-| Component | Responsibility |
+- **Random color redistribution:** Brick colors are randomly reassigned across all four production lines.
+- **Preservation of color counts:** The total number of bricks per color remains unchanged.
+- **Fixed brick positions:** The physical positions of the bricks remain unchanged.
+- **Unchanged bricks outside production lines:** Bricks outside the four production lines retain their original colors.
+- **Logistics consistency:** Pickup station selection reflects the current color distribution. The selected station must contain an available brick of the required color.
+- **Setup-dependent availability:** The Shuffle button becomes available after production setup.
+- **Status feedback:** The interface reports the number of shuffled bricks.
+
+## Implementation
+
+The extension builds on the existing object-oriented architecture and involves several application components:
+
+| Component | Responsibility in the extension |
 |---|---|
-| `MainWindow` | Displays the graphical user interface and forwards user input. |
-| `MainViewModel` | Connects the user interface to the application logic and manages presentation state. |
-| `LegoBrickViewModel` | Provides display properties for individual LEGO bricks. |
-| `Factory` | Coordinates production lines, the robot, transportation, and factory processes. |
-| `Logistics` | Manages orders, delivery progress, and pickup station selection. |
-| `ProductionLine` | Creates and moves LEGO bricks on production lines. |
-| `Robot` | Implements robot-specific movement and positioning. |
-| `LegoBrick` | Represents a brick, including its properties, state, and transport behavior. |
-| `Beweger` | Provides shared movement, rotation, collision detection, and docking functionality. |
-| `Pose` | Stores an object's position and orientation. |
-| `Parameters` and `ViewParameters` | Contain application settings and geometric parameters. |
+| `Factory` | Identifies eligible bricks and coordinates the color redistribution. |
+| `Logistics` | Determines an appropriate pickup station based on the current availability of the required brick color. |
+| `LegoBrick` | Stores the brick's color and other state information. |
+| `MainViewModel` | Connects the Shuffle operation to the user interface and manages its availability. |
+| `LegoBrickViewModel` | Provides updated display properties for the bricks. |
+| `MainWindow` | Provides the Shuffle button and displays the status feedback. |
+
+The color redistribution operates on the existing color values. Consequently, the number of bricks per color is preserved without changing the physical arrangement of the production lines.
 
 ## Technologies
 
 - C#
 - .NET 10
 - Avalonia UI
-- CommunityToolkit.Mvvm
 - XAML
-
-The graphical interface follows the MVVM (Model-View-ViewModel) pattern, separating presentation, application control, and domain logic.
-
-## Independent Practical Assessment Extension (After Lab 5)
-
-After completion of the five laboratory assignments, a separate practical assessment task was implemented as an independent extension. It is not part of the original five labs. The implementation was completed independently, without AI assistance or internet access.
-
-### Shuffle Production-Line Bricks
-
-The extension introduces a function for randomly redistributing brick colors across all four production lines.
-
-Its behavior includes:
-
-- Random redistribution of the existing colors across all four production lines.
-- Preservation of the total number of bricks per color.
-- Preservation of the bricks' physical positions.
-- No color changes for bricks currently outside the four production lines.
-- Updated logistics instructions and pickup station selection based on the current color distribution. The selected station must actually contain an available brick of the required color.
-- Activation of the Shuffle button after production setup.
-- A status message reporting the number of shuffled bricks.
-
-The extension builds on the existing architecture, particularly the `Factory`, `Logistics`, and `LegoBrick` components, together with the ViewModels and graphical interface.
-
-## Requirements
-
-- .NET 10 SDK
-- Visual Studio, Visual Studio Code, or another compatible .NET development environment
+- CommunityToolkit.Mvvm
+- MVVM (Model-View-ViewModel)
 
 ## Build and Run
 
-Clone the repository:
+Requirements:
+- .NET 10 SDK
+- A compatible .NET development environment
+
+Clone this branch:
 
 ```bash
-git clone https://github.com/ffeith/SWT_SmartFactoryApp.git
+git clone --branch exam-task-shuffle https://github.com/ffeith/SWT_SmartFactoryApp.git
 cd SWT_SmartFactoryApp
 ```
 
@@ -96,8 +77,12 @@ Run the application:
 dotnet run
 ```
 
+## Project Context
+
+This practical assessment extension is separate from the original five laboratory assignments and is maintained in its own Git branch.
+
+For the complete project overview, architecture, and documentation of the semester project, see the [`main` branch](https://github.com/ffeith/SWT_SmartFactoryApp/blob/main/README.md).
+
 ---
 
-**University:** TH Köln<br>
-**Module:** Software Engineering<br>
-**Project:** SmartFactory
+**University:** TH Köln · **Module:** Software Engineering · **Project:** SmartFactory

@@ -1,80 +1,61 @@
-# SmartFactory
+# SmartFactory – Erweiterung zur praktischen Prüfungsaufgabe
 
 [English](README.md) | [Deutsch](README.de.md)
 
-SmartFactory ist eine Desktopanwendung zur Simulation einer automatisierten Fabrik. Sie verbindet Produktionsabläufe, manuelle Robotersteuerung, Logistikplanung, Kundenaufträge, Qualitätskontrolle und Recycling in einer interaktiven grafischen Umgebung.
+Dieser Branch enthält eine eigenständige Erweiterung des SmartFactory-Projekts, die nach Abschluss der fünf ursprünglichen Laborübungen an der TH Köln umgesetzt wurde.
 
-Das Projekt entstand im Rahmen des Moduls **Softwaretechnik** an der **TH Köln**. Die ursprüngliche Anwendung entwickelte sich über fünf aufeinander aufbauende Laboraufgaben hinweg. Jedes Labor führte neue Funktionen ein und erweiterte die bestehende objektorientierte Architektur.
+Im Mittelpunkt der praktischen Prüfungsaufgabe stand die Erweiterung der bestehenden Fabriksimulation um eine Funktion zur zufälligen Neuverteilung der Farben von LEGO-Steinen auf allen vier Produktionslinien.
 
-## Funktionen
+Die Aufgabe wurde eigenständig, ohne KI-Unterstützung und ohne Internetzugang, bearbeitet.
 
-- **Produktionslinien:** Vier Produktionslinien erzeugen und bewegen LEGO-Steine mit zufällig zugewiesenen Farben.
-- **Robotersteuerung:** Ein manuell steuerbarer Roboter bewegt sich durch die Fabrik, interagiert mit den Produktionslinien und kann Steine aufnehmen und absetzen.
-- **Kundenaufträge:** Aufträge bestehen aus acht zufällig ausgewählten Steinen.
-- **Logistikplanung:** Die Logistik bestimmt den nächsten benötigten Stein und die passende Abholstation.
-- **Qualitätskontrolle:** Die Steine durchlaufen eine zufallsbasierte Qualitätskontrolle.
-- **Recycling:** Zurückgewiesene Steine werden zur Recyclinglinie transportiert und können erneut abgeholt werden.
-- **Grafische Simulation:** Die Avalonia-Benutzeroberfläche visualisiert Produktionslinien, Roboter, LEGO-Steine, Transportabläufe und den Auftragsfortschritt.
+## Aufgabenstellung: Neuverteilung der Farben auf den Produktionslinien
 
-## Architektur
+Ziel war die Implementierung einer Shuffle-Funktion, die die vorhandenen Farben auf geeignete Steine aller vier Produktionslinien zufällig verteilt, ohne den zugrunde liegenden Fabrikzustand zu verändern.
 
-Die Anwendung folgt einer objektorientierten Architektur mit klar getrennten Verantwortlichkeiten.
+### Umgesetzte Anforderungen
 
-| Komponente | Verantwortung |
+- **Zufällige Farbverteilung:** Die Farben der Steine werden auf allen vier Produktionslinien zufällig neu zugewiesen.
+- **Erhaltung der Farbanzahlen:** Die Gesamtanzahl der Steine je Farbe bleibt unverändert.
+- **Unveränderte Positionen:** Die physischen Positionen der Steine bleiben erhalten.
+- **Keine Änderungen außerhalb der Produktionslinien:** Steine außerhalb der vier Produktionslinien behalten ihre ursprünglichen Farben.
+- **Konsistente Logistik:** Die Auswahl der Abholstation berücksichtigt die aktuelle Farbverteilung. Die ausgewählte Station muss einen verfügbaren Stein der benötigten Farbe enthalten.
+- **Abhängigkeit vom Produktions-Setup:** Die Shuffle-Schaltfläche wird erst nach der Einrichtung der Produktion aktiviert.
+- **Statusanzeige:** Die Benutzeroberfläche gibt die Anzahl der neu verteilten Steine aus.
+
+## Umsetzung
+
+Die Erweiterung baut auf der bestehenden objektorientierten Architektur auf und umfasst mehrere Anwendungskomponenten:
+
+| Komponente | Aufgabe innerhalb der Erweiterung |
 |---|---|
-| `MainWindow` | Darstellung der grafischen Benutzeroberfläche und Weiterleitung von Benutzereingaben. |
-| `MainViewModel` | Verbindung zwischen Benutzeroberfläche und Anwendungslogik sowie Verwaltung der Darstellungszustände. |
-| `LegoBrickViewModel` | Bereitstellung der Darstellungsdaten einzelner LEGO-Steine. |
-| `Factory` | Koordination der Produktionslinien, des Roboters, des Transports und der Fabrikabläufe. |
-| `Logistics` | Verwaltung von Aufträgen, Lieferfortschritt und Auswahl der Abholstation. |
-| `ProductionLine` | Erzeugung und Bewegung der LEGO-Steine auf den Produktionslinien. |
-| `Robot` | Spezifische Bewegungs- und Positionierungslogik des Roboters. |
-| `LegoBrick` | Repräsentation eines Steins einschließlich seiner Eigenschaften, seines Zustands und seines Transportverhaltens. |
-| `Beweger` | Gemeinsame Bewegungs-, Rotations-, Kollisions- und Dockingfunktionen. |
-| `Pose` | Speicherung der Position und Ausrichtung eines Objekts. |
-| `Parameters` und `ViewParameters` | Zentrale Anwendungswerte und geometrische Einstellungen. |
+| `Factory` | Identifiziert geeignete Steine und koordiniert die Neuverteilung der Farben. |
+| `Logistics` | Ermittelt anhand der aktuellen Verfügbarkeit der benötigten Steinfarbe eine geeignete Abholstation. |
+| `LegoBrick` | Speichert die Farbe und weitere Zustandsinformationen eines Steins. |
+| `MainViewModel` | Verbindet die Shuffle-Funktion mit der Benutzeroberfläche und verwaltet ihre Verfügbarkeit. |
+| `LegoBrickViewModel` | Stellt aktualisierte Darstellungsinformationen für die Steine bereit. |
+| `MainWindow` | Stellt die Shuffle-Schaltfläche und die Statusmeldung bereit. |
+
+Bei der Neuverteilung werden die bereits vorhandenen Farbwerte verwendet. Dadurch bleibt die Anzahl der Steine je Farbe erhalten, ohne die physische Anordnung auf den Produktionslinien zu verändern.
 
 ## Technologien
 
 - C#
 - .NET 10
 - Avalonia UI
-- CommunityToolkit.Mvvm
 - XAML
+- CommunityToolkit.Mvvm
+- MVVM (Model-View-ViewModel)
 
-Die grafische Benutzeroberfläche folgt dem MVVM-Pattern (Model-View-ViewModel). Dadurch werden Darstellung, Anwendungssteuerung und fachliche Logik voneinander getrennt.
+## Projekt erstellen und starten
 
-## Eigenständige praktische Prüfungsaufgabe (nach Lab 5)
-
-Nach Abschluss der fünf Laboraufgaben wurde eine separate praktische Prüfungsaufgabe als eigenständige Erweiterung umgesetzt. Sie ist nicht Bestandteil der ursprünglichen fünf Labore. Die Umsetzung erfolgte eigenständig, ohne KI-Unterstützung und ohne Internetzugriff.
-
-### LEGO-Steine auf den Produktionslinien shufflen
-
-Die Erweiterung ergänzt die Fabrik um eine Funktion zur zufälligen Neuverteilung der Farben über alle vier Produktionslinien.
-
-Dabei gelten folgende Eigenschaften:
-
-- Die vorhandenen Farben werden zufällig über alle vier Produktionslinien neu verteilt.
-- Die Gesamtanzahl der Steine je Farbe bleibt unverändert.
-- Die physischen Positionen der Steine bleiben erhalten.
-- Steine, die sich außerhalb der vier Produktionslinien befinden, behalten ihre Farbe.
-- Die Logistikanweisung und die Abholstationsauswahl berücksichtigen die aktuelle Farbverteilung. Die ausgewählte Station muss tatsächlich einen verfügbaren Stein der benötigten Farbe enthalten.
-- Der Shuffle-Button wird nach dem Einrichten der Produktionslinien aktiviert.
-- Eine Statusmeldung informiert über die Anzahl der geshuffelten Steine.
-
-Die Erweiterung baut auf der bestehenden Architektur auf und betrifft insbesondere die Komponenten `Factory`, `Logistics` und `LegoBrick` sowie die ViewModels und die grafische Benutzeroberfläche.
-
-## Voraussetzungen
-
+Voraussetzungen:
 - .NET 10 SDK
-- Visual Studio, Visual Studio Code oder eine andere kompatible .NET-Entwicklungsumgebung
+- Eine kompatible .NET-Entwicklungsumgebung
 
-## Projekt bauen und starten
-
-Repository klonen:
+Diesen Branch klonen:
 
 ```bash
-git clone https://github.com/ffeith/SWT_SmartFactoryApp.git
+git clone --branch exam-task-shuffle https://github.com/ffeith/SWT_SmartFactoryApp.git
 cd SWT_SmartFactoryApp
 ```
 
@@ -84,7 +65,7 @@ Abhängigkeiten wiederherstellen:
 dotnet restore
 ```
 
-Projekt bauen:
+Anwendung kompilieren:
 
 ```bash
 dotnet build
@@ -96,8 +77,12 @@ Anwendung starten:
 dotnet run
 ```
 
+## Projektkontext
+
+Diese praktische Prüfungsaufgabe ist eine eigenständige Erweiterung nach Abschluss der ursprünglichen fünf Laborübungen und wird in einem separaten Git-Branch geführt.
+
+Eine vollständige Projektübersicht sowie die Dokumentation der Architektur und des Semesterprojekts befinden sich im Branch [`main`](https://github.com/ffeith/SWT_SmartFactoryApp/blob/main/README.de.md).
+
 ---
 
-**Hochschule:** TH Köln<br>
-**Modul:** Softwaretechnik<br>
-**Projekt:** SmartFactory
+**Hochschule:** TH Köln · **Modul:** Softwaretechnik · **Projekt:** SmartFactory
