@@ -2,50 +2,87 @@
 
 [English](README.md) | [Deutsch](README.de.md)
 
-SmartFactory ist eine Desktopanwendung zur Simulation einer automatisierten Fabrik. Sie bildet Produktions- und Logistikprozesse ab. Dazu gehören Produktionslinien, ein manuell steuerbarer Roboter, LEGO-Steine unterschiedlicher Farben, Kundenaufträge, Qualitätskontrolle, Transport und Recycling.
+SmartFactory ist eine interaktive Desktop-Simulation einer LEGO-Stein-Fabrik, entwickelt mit C#, .NET 10 und Avalonia UI. Die Anwendung bildet Produktions- und Logistikprozesse ab, darunter Produktionslinien, einen manuell gesteuerten Roboter, Kundenaufträge, Transportvorgänge, Qualitätskontrollen und Recycling.
 
-Das Projekt entstand im Rahmen des Moduls **Softwaretechnik** an der **TH Köln**. Die Entwicklung erfolgte in fünf aufeinander aufbauenden Laboren. Mit jedem Labor wurde die bestehende Anwendung schrittweise erweitert.
+Das Projekt entstand im Rahmen des Moduls **Softwaretechnik** an der **TH Köln**. Das ursprüngliche Semesterprojekt besteht aus fünf aufeinander aufbauenden Laborübungen, in denen die Funktionalität und Architektur der Anwendung schrittweise erweitert wurden.
 
 ## Funktionen
 
-- **Produktionslinien:** Vier Produktionslinien erzeugen und bewegen LEGO-Steine mit zufällig zugewiesenen Farben.
-- **Robotersteuerung:** Ein manuell steuerbarer Roboter bewegt sich durch die Fabrik und kann Steine aufnehmen und absetzen.
-- **Kundenaufträge:** Ein Auftrag besteht aus acht zufällig ausgewählten Steinen. Dabei können auch gleiche Farben beziehungsweise Steine mehrfach vorkommen.
-- **Logistik:** Die Logistik bestimmt, welcher Stein als Nächstes benötigt wird und an welcher Station er abgeholt werden muss.
-- **Qualitätskontrolle:** Abgegebene Steine durchlaufen eine zufallsbasierte Qualitätskontrolle.
-- **Recycling:** Zurückgewiesene Steine werden zur Recyclinglinie transportiert und können erneut abgeholt werden.
-- **Grafische Simulation:** Die Avalonia-Benutzeroberfläche stellt die Fabrik, den Roboter, die Produktionslinien und die Bewegungen der Steine dar.
-
-## Anwendungsfenster
-
-Die Anwendung startet in einem maximierten Fenstermodus. Die normale Fensterdekoration einschließlich Titelleiste und Schließen-Schaltfläche bleibt sichtbar.
+- **Produktionslinien:** Vier Produktionslinien fertigen LEGO-Steine mit zufällig zugewiesenen Farben und bewegen diese entlang der Förderbänder.
+- **Robotersteuerung:** Ein manuell gesteuerter Roboter bewegt sich durch die Fabrik, nimmt Steine auf und transportiert sie zwischen den Stationen.
+- **Kundenaufträge:** Aufträge bestehen aus acht zufällig ausgewählten LEGO-Steinen.
+- **Logistik:** Ermittelt den als Nächstes benötigten Stein und wählt eine geeignete Abholstation aus.
+- **Qualitätskontrolle und Recycling:** Die Steine durchlaufen eine probabilistische Qualitätsprüfung. Abgelehnte Steine werden zur Recyclingstation transportiert und können für eine erneute Prüfung abgeholt werden.
+- **Grafische Simulation:** Die Avalonia-Oberfläche visualisiert die Fabrik, Produktionslinien, Roboterbewegungen, Transportvorgänge und den Fortschritt der Auftragsbearbeitung.
 
 ## Architektur
 
-Die Anwendung ist objektorientiert aufgebaut. Die Klassen sind nach ihren jeweiligen Verantwortlichkeiten aufgeteilt.
+Die Anwendung folgt einer objektorientierten Architektur mit klar voneinander abgegrenzten Verantwortlichkeiten.
 
 | Komponente | Verantwortung |
 |---|---|
-| `MainWindow` | Darstellung der grafischen Oberfläche und Weiterleitung von Benutzereingaben. |
-| `MainViewModel` | Verbindung zwischen Benutzeroberfläche und Anwendungslogik sowie Bereitstellung der angezeigten Daten. |
-| `LegoBrickViewModel` | Bereitstellung der Daten zur grafischen Darstellung einzelner LEGO-Steine. |
-| `Factory` | Koordination der Produktionslinien, des Roboters, des Transports und der Fabrikabläufe. |
-| `Logistics` | Verwaltung von Kundenaufträgen, Lieferfortschritt und Qualitätskontrolle. |
-| `ProductionLine` | Erzeugung und Bewegung der LEGO-Steine auf einer Produktionslinie. |
-| `Robot` | Implementierung der spezifischen Bewegungs- und Positionierungslogik des Roboters. |
-| `LegoBrick` | Repräsentation eines Steins einschließlich Farbe, Größe, Status und Transportverhalten. |
-| `Beweger` | Gemeinsame Bewegungs-, Rotations-, Kollisions- und Dockingfunktionen. |
-| `Pose` | Speicherung der Position und Ausrichtung eines Objekts. |
-| `Parameters` und `ViewParameters` | Zentrale Anwendungswerte sowie geometrische Einstellungen. |
+| `MainWindow` | Stellt die grafische Benutzeroberfläche dar und leitet Benutzereingaben weiter. |
+| `MainViewModel` | Verbindet die Benutzeroberfläche mit der Anwendungslogik und verwaltet den Darstellungszustand. |
+| `LegoBricksViewModel` | Stellt die Darstellungsinformationen für einzelne LEGO-Steine bereit. |
+| `Factory` | Koordiniert Produktionslinien, Roboter, Transportvorgänge und Fabrikprozesse. |
+| `Logistics` | Verwaltet Aufträge, den Lieferfortschritt und die Auswahl der Abholstationen. |
+| `ProductionLine` | Erstellt und bewegt LEGO-Steine entlang der Produktionslinien. |
+| `Robot` | Implementiert die spezifischen Bewegungs- und Positionierungsfunktionen des Roboters. |
+| `LegoBrick` | Repräsentiert einen LEGO-Stein einschließlich seiner Eigenschaften und seines Zustands. |
+| `Beweger` | Stellt gemeinsame Funktionen für Bewegung, Rotation, Kollisionserkennung und Andockvorgänge bereit. |
+| `Pose` | Speichert die Position und Ausrichtung eines Objekts. |
+| `Parameters` und `ViewParameters` | Enthalten Anwendungs- und geometrische Parameter. |
 
-Die grafische Benutzeroberfläche basiert auf **Avalonia UI**. Für die ViewModel-Funktionalität wird **CommunityToolkit.Mvvm** verwendet.
+## Technische Schwerpunkte
+
+Das Projekt verbindet verschiedene Bereiche der Softwareentwicklung:
+
+- **Objektorientierte Programmierung:** Modellierung der Fabrikkomponenten und ihrer Interaktionen durch Klassen mit klar definierten Verantwortlichkeiten.
+- **MVVM-Architektur:** Trennung der grafischen Oberfläche von der Anwendungslogik mithilfe von ViewModels und Data Binding.
+- **Anwendungslogik:** Umsetzung koordinierter Abläufe für Produktion, Transport, Auftragsbearbeitung, Qualitätskontrolle und Recycling.
+- **Entwicklung grafischer Benutzeroberflächen:** Gestaltung einer interaktiven Desktop-Anwendung mit Avalonia UI, XAML und CommunityToolkit.Mvvm.
+
+## Zusätzliche praktische Prüfungsaufgabe
+
+Nach Abschluss der fünf Laborübungen wurde eine separate praktische Prüfungsaufgabe als eigenständige Erweiterung umgesetzt. Sie ist nicht Bestandteil der ursprünglichen fünf Labs und wird in einem eigenen Git-Branch geführt.
+
+Die Aufgabe wurde eigenständig, ohne KI-Unterstützung und ohne Internetzugang, bearbeitet.
+
+### Zufällige Neuverteilung der Farben auf den Produktionslinien
+
+Die Erweiterung ergänzt die Fabrik um eine Funktion zur zufälligen Neuverteilung der Farben von LEGO-Steinen auf allen vier Produktionslinien.
+
+Die Funktion umfasst:
+
+- Zufällige Neuverteilung der Farben geeigneter Steine auf den vier Produktionslinien.
+- Erhaltung der Gesamtanzahl der Steine je Farbe.
+- Beibehaltung der physischen Positionen der Steine.
+- Keine Farbänderungen bei Steinen, die sich außerhalb der vier Produktionslinien befinden.
+- Aktualisierung der Logistikanweisungen und der Auswahl der Abholstation anhand der aktuellen Farbverteilung. Die ausgewählte Station muss tatsächlich einen verfügbaren Stein der benötigten Farbe enthalten.
+- Aktivierung der Shuffle-Schaltfläche nach der Einrichtung der Produktion.
+- Eine Statusmeldung, die die Anzahl der neu verteilten Steine angibt.
+
+Die Implementierung erweitert die bestehende Architektur, insbesondere die Komponenten `Factory`, `Logistics` und `LegoBrick`, sowie die ViewModels und die grafische Benutzeroberfläche.
+
+Die Erweiterung ist im Branch [`exam-task-shuffle`](https://github.com/ffeith/SWT_SmartFactoryApp/tree/exam-task-shuffle) verfügbar.
+
+## Technologien
+
+- C#
+- .NET 10
+- Avalonia UI
+- XAML
+- CommunityToolkit.Mvvm
+- MVVM (Model-View-ViewModel)
+
+Das MVVM-Muster sorgt für eine Trennung zwischen grafischer Darstellung, Anwendungssteuerung und fachlicher Logik.
 
 ## Voraussetzungen
 
 - .NET 10 SDK
-- Visual Studio oder Visual Studio Code (oder eine andere kompatible .NET-Entwicklungsumgebung)
+- Visual Studio, Visual Studio Code oder eine andere kompatible .NET-Entwicklungsumgebung
 
-## Projekt bauen und starten
+## Projekt erstellen und starten
 
 Repository klonen:
 
@@ -60,7 +97,7 @@ Abhängigkeiten wiederherstellen:
 dotnet restore
 ```
 
-Projekt bauen:
+Anwendung kompilieren:
 
 ```bash
 dotnet build
@@ -72,14 +109,6 @@ Anwendung starten:
 dotnet run
 ```
 
-## Projektkontext
-
-SmartFactory ist ein Lehrprojekt im Rahmen des Moduls Softwaretechnik an der TH Köln. Die fünf aufeinander aufbauenden Labore erweitern die ursprüngliche Fabriksimulation schrittweise um zusätzliche Funktionen und eine zunehmend umfangreiche objektorientierte Struktur.
-
 ---
 
-**Hochschule:** TH Köln
-
-**Modul:** Softwaretechnik
-
-**Projekt:** SmartFactory
+**Hochschule:** TH Köln · **Modul:** Softwaretechnik · **Projekt:** SmartFactory
